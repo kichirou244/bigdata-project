@@ -1,0 +1,32 @@
+# --- môi trường ảo & secret ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+
+# --- dữ liệu lớn & evidence runtime (giữ thư mục, không commit nội dung) ---
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+# CSV chunk đã chuẩn hóa (derived từ raw, không commit)
+data/work/*
+!data/work/.gitkeep
+# data/sample được commit làm sample cho giảng viên chạy thử
+logs/*
+!logs/.gitkeep
+
+# --- Spark local ---
+spark-warehouse/
+metastore_db/
+derby.log
+
+# --- binary Hadoop (winutils) tải theo hướng dẫn README mục 2b ---
+hadoop/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

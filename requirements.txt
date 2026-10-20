@@ -1,0 +1,8 @@
+# Spark 3.5.x hỗ trợ Java 8/11/17 -> dùng JDK 17, đặt JAVA_HOME
+pyspark==3.5.1
+# Cần cho đọc/ghi Parquet ở các checkpoint sau (FR4)
+pyarrow>=14
+# P3 – Dashboard serve layer (NFR3: query <= 2s)
+duckdb>=1.0
+streamlit>=1.49   # cần >= 1.49 cho width="stretch" trong dashboard.py
+plotly>=5.20
