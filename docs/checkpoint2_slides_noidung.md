@@ -13,7 +13,7 @@
 
 - **Đề tài:** Phân tích Xu hướng & Tốc độ Tăng trưởng Video Thịnh hành YouTube
   (YouTube Trending Analytics)
-- **Nhóm:** _________________________ (Lớp: __________)
+- **Nhóm:** YouTube Trending Analytics (4 thành viên) — (Lớp: __________)
 - **Thành viên & vai trò:**
   - Phan Đình Bảo – Môi trường + Ingestion (src/env_check.py, src/ingest_file.py)
   - Trương Đình Phúc – Spark transform (src/split_csv.py, src/transform.py)
@@ -103,7 +103,7 @@
 - **RERUN** (đã chạy thật 3 lần liên tiếp trên chính file 8,59 GB, `--on-duplicate skip` mặc định):
   - Lần 1: tạo run + copy + manifest · Lần 2 & 3: hash trùng → **SKIP**, raw giữ nguyên
     (log `duplicate_skip` trong `logs/ingest.log`) → **idempotent**, raw storage vẫn đúng 1 run;
-  - file hash khác → run mới (append, không overwrite) · file hởng / quality gate fail → fail-fast
+  - file hash khác → run mới (append, không overwrite) · file hỏng / quality gate fail → fail-fast
     (exit code 1), không tạo raw giả;
   - ép hành vi khác đã test: `--on-duplicate new-run` (luôn tạo run mới) và `--on-duplicate fail`
     (thoát lỗi).
