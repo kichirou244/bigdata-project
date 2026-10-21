@@ -19,7 +19,7 @@
   - Trương Đình Phúc – Spark transform (src/split_csv.py, src/transform.py)
   - Trần Thị Khánh Linh – Parquet phân vùng + DuckDB (schema, query)
   - Đoàn Ngọc Trân Châu – Dashboard Streamlit + tài liệu (src/dashboard.py, README)
-- **Git:** tag `checkpoint-2` (commit `__COMMIT__`) · repo có README evidence checklist (mục 1–9b)
+- **Git:** tag `checkpoint-2` (commit `1cd9bca`) · repo có README evidence checklist (mục 1–9b)
 
 ---
 
