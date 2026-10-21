@@ -112,7 +112,9 @@ python src/ingest_file.py --source "<thư mục CSV>" --dataset youtube_trending
 
 Job làm gì: quality gate (tồn tại / bytes > 0 / đọc được / extension hợp lệ) → tính **SHA-256** → copy nguyên bản vào `data/raw/<dataset>/ingest_date=.../run_.../` → ghi **`manifest.json`** + append `logs/ingest.log`.
 
-Manifest gồm: `dataset, source, ingested_at_utc, bytes, sha256, destination, status` (+ `rows_estimate` cho CSV).
+Manifest gồm: `dataset, source, ingested_at_utc, bytes, sha256, destination, status`
+(+ `records` = số record thật đếm chuẩn RFC4180, + `amendments[]` = audit trail mọi lần
+bổ sung/sửa metadata).
 
 > **Lưu ý về `rows_estimate`:** với CSV nhiều dòng (ô `description` chứa newline) thì **số dòng vật lý ≠ số record**.
 > `ingest_file.py` nhận biết trường hợp này và **không** ghi con số ảo; số record thật được đếm
@@ -195,6 +197,24 @@ Output: `rows = ...`, `printSchema()`, 5 dòng đầu → copy vào slide/raw ev
 - [x] SPARK ĐỌC RAW: `src/read_raw_sample.py` → `rows = 6,094,047` (khớp manifest)
 - [x] (Vượt yêu cầu) P3 transform + dashboard đã chạy trên dữ liệu thật (mục 10–11)
 - [ ] Mỗi thành viên trả lời được phần mình phụ trách (xem Plan & roles trong Proposal)
+
+### 9a. Sinh lại báo cáo Checkpoint 2 (tùy chọn)
+
+Hai bản nộp trong `docs/` được **sinh tự động** từ template chính thức của GV
+(`D:\Edu\BD\BigData_Buoi06_DoAn2_Checkpoint2_Report_Template.pptx` và
+`..._Brief_Checkpoint_Template.docx`) — template gốc **không bị sửa**:
+
+```powershell
+python src\build_checkpoint_report.py   # -> docs/Checkpoint2_Report_YouTube_Trending.pptx
+python src\build_checkpoint_brief.py    # -> docs/Checkpoint2_Brief_Filled.docx
+```
+
+- Số liệu lấy tự động từ evidence thật (`logs/`, `manifest.json`) + commit hash lấy từ
+  `git describe --tags` → **không ghi tay số liệu**, sinh lại cho kết quả giống hệt.
+- Script đo chiều cao chữ bằng **metrics thật của font** (Pillow đọc TTF Calibri/Consolas),
+  tự thu nhỏ cỡ chữ nếu vượt khung và **validate** rồi mới ghi file (exit code ≠ 0 nếu còn
+  text tràn khung / chồng nhau / thiếu nội dung bắt buộc).
+- Cần thêm: `python-pptx`, `python-docx`, `pillow` (xem `requirements.txt`).
 
 ### 9b. Ghi chú môi trường làm việc
 
