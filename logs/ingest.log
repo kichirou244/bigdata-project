@@ -1,0 +1,7 @@
+2026-10-20T02:27:38+00:00 | success | dataset=youtube_trending | run=run_20261020T022738Z | files=1 (skipped=0) | bytes=87 | sha256=73db28e1a496… | dest=C:\Users\Kichirou\AppData\Local\Temp\opencode\ingest_test\raw\youtube_trending\ingest_date=2026-10-20\run_20261020T022738Z
+2026-10-20T02:27:38+00:00 | manifest | C:\Users\Kichirou\AppData\Local\Temp\opencode\ingest_test\raw\youtube_trending\ingest_date=2026-10-20\run_20261020T022738Z\manifest.json
+2026-10-20T02:27:38+00:00 | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+2026-10-20T02:27:39+00:00 | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+2026-10-20T13:03:47+00:00 | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+2026-10-20T14:30:40+00:00 | success | dataset=youtube_trending | run=run_20261020T143013Z | files=1 (skipped=0) | bytes=8591418141 | sha256=4310930bd2d1… | dest=data\raw\youtube_trending\ingest_date=2026-10-20\run_20261020T143013Z
+2026-10-20T14:30:40+00:00 | manifest | data\raw\youtube_trending\ingest_date=2026-10-20\run_20261020T143013Z\manifest.json

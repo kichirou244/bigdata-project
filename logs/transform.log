@@ -1,0 +1,90 @@
+2026-10-20T02:53:30+00:00 | start | input=D:\Edu\BD\bigdata-project\data\sample
+2026-10-20T02:53:35+00:00 | read | GBvideos.csv | region=GB
+2026-10-20T02:53:36+00:00 | read | USvideos.csv | region=US
+2026-10-20T02:55:31+00:00 | start | input=D:\Edu\BD\bigdata-project\data\sample
+2026-10-20T02:55:36+00:00 | read | GBvideos.csv | region=GB
+2026-10-20T02:55:36+00:00 | read | USvideos.csv | region=US
+2026-10-20T02:57:14+00:00 | start | input=D:\Edu\BD\bigdata-project\data\sample
+2026-10-20T02:57:20+00:00 | read | GBvideos.csv | region=GB
+2026-10-20T02:57:20+00:00 | read | USvideos.csv | region=US
+2026-10-20T02:57:30+00:00 | success | rows_in=16 clean=15 dropped=1 | daily=15 summary=8 | duration=22.7s (NFR2 <= 600s)
+2026-10-20T13:01:12+00:00 | start | input=D:\Edu\BD\bigdata-project\data\sample
+2026-10-20T13:01:18+00:00 | read | GBvideos.csv | region=GB
+2026-10-20T13:01:19+00:00 | read | USvideos.csv | region=US
+2026-10-20T13:01:30+00:00 | success | rows_in=16 clean=16 dropped=0 | daily=16 summary=8 | duration=39.8s (NFR2 <= 600s)
+2026-10-20T13:02:58+00:00 | start | input=D:\Edu\BD\bigdata-project\data\sample
+2026-10-20T13:03:04+00:00 | read | GBvideos.csv | region=GB
+2026-10-20T13:03:05+00:00 | read | USvideos.csv | region=US
+2026-10-20T13:03:15+00:00 | success | rows_in=17 clean=16 dropped=1 | daily=16 summary=8 | duration=22.1s (NFR2 <= 600s)
+2026-10-20T14:35:11+00:00 | start | input=E:\bigdata-project\data\raw\youtube_trending\ingest_date=2026-10-20\run_20261020T143013Z
+2026-10-20T14:35:18+00:00 | read | chunk_00000.csv | bytes=268,436,735 | multiline=False
+2026-10-20T14:35:19+00:00 | read | chunk_00001.csv | bytes=268,437,922 | multiline=False
+2026-10-20T14:35:20+00:00 | read | chunk_00002.csv | bytes=268,436,433 | multiline=False
+2026-10-20T14:35:20+00:00 | read | chunk_00003.csv | bytes=268,435,944 | multiline=False
+2026-10-20T14:35:21+00:00 | read | chunk_00004.csv | bytes=268,436,217 | multiline=False
+2026-10-20T14:35:21+00:00 | read | chunk_00005.csv | bytes=268,435,775 | multiline=False
+2026-10-20T14:35:21+00:00 | read | chunk_00006.csv | bytes=268,435,796 | multiline=False
+2026-10-20T14:35:22+00:00 | read | chunk_00007.csv | bytes=268,435,482 | multiline=False
+2026-10-20T14:35:22+00:00 | read | chunk_00008.csv | bytes=268,436,154 | multiline=False
+2026-10-20T14:35:22+00:00 | read | chunk_00009.csv | bytes=268,436,935 | multiline=False
+2026-10-20T14:35:22+00:00 | read | chunk_00010.csv | bytes=268,435,956 | multiline=False
+2026-10-20T14:35:23+00:00 | read | chunk_00011.csv | bytes=268,437,181 | multiline=False
+2026-10-20T14:35:23+00:00 | read | chunk_00012.csv | bytes=268,435,991 | multiline=False
+2026-10-20T14:35:23+00:00 | read | chunk_00013.csv | bytes=268,436,235 | multiline=False
+2026-10-20T14:35:24+00:00 | read | chunk_00014.csv | bytes=268,436,541 | multiline=False
+2026-10-20T14:35:24+00:00 | read | chunk_00015.csv | bytes=268,435,616 | multiline=False
+2026-10-20T14:35:24+00:00 | read | chunk_00016.csv | bytes=268,437,452 | multiline=False
+2026-10-20T14:35:24+00:00 | read | chunk_00017.csv | bytes=268,436,086 | multiline=False
+2026-10-20T14:35:25+00:00 | read | chunk_00018.csv | bytes=268,436,606 | multiline=False
+2026-10-20T14:35:25+00:00 | read | chunk_00019.csv | bytes=268,436,035 | multiline=False
+2026-10-20T14:35:25+00:00 | read | chunk_00020.csv | bytes=268,436,819 | multiline=False
+2026-10-20T14:35:26+00:00 | read | chunk_00021.csv | bytes=268,435,565 | multiline=False
+2026-10-20T14:35:26+00:00 | read | chunk_00022.csv | bytes=268,435,540 | multiline=False
+2026-10-20T14:35:26+00:00 | read | chunk_00023.csv | bytes=268,435,796 | multiline=False
+2026-10-20T14:35:26+00:00 | read | chunk_00024.csv | bytes=268,436,003 | multiline=False
+2026-10-20T14:35:26+00:00 | read | chunk_00025.csv | bytes=268,435,589 | multiline=False
+2026-10-20T14:35:27+00:00 | read | chunk_00026.csv | bytes=268,435,703 | multiline=False
+2026-10-20T14:35:27+00:00 | read | chunk_00027.csv | bytes=268,436,970 | multiline=False
+2026-10-20T14:35:27+00:00 | read | chunk_00028.csv | bytes=268,435,977 | multiline=False
+2026-10-20T14:35:27+00:00 | read | chunk_00029.csv | bytes=268,436,711 | multiline=False
+2026-10-20T14:35:27+00:00 | read | chunk_00030.csv | bytes=268,438,617 | multiline=False
+2026-10-20T14:35:28+00:00 | read | chunk_00031.csv | bytes=268,440,012 | multiline=False
+2026-10-20T14:35:28+00:00 | read | chunk_00032.csv | bytes=360,142 | multiline=False
+2026-10-20T14:35:29+00:00 | rows_in=6,094,047 (nguồn: split_manifest)
+2026-10-20T14:43:51+00:00 | start | input=E:\bigdata-project\data\raw\youtube_trending\ingest_date=2026-10-20\run_20261020T143013Z
+2026-10-20T14:43:54+00:00 | read | chunk_00000.csv | bytes=268,436,735 | multiline=False
+2026-10-20T14:43:55+00:00 | read | chunk_00001.csv | bytes=268,437,922 | multiline=False
+2026-10-20T14:43:55+00:00 | read | chunk_00002.csv | bytes=268,436,433 | multiline=False
+2026-10-20T14:43:55+00:00 | read | chunk_00003.csv | bytes=268,435,944 | multiline=False
+2026-10-20T14:43:55+00:00 | read | chunk_00004.csv | bytes=268,436,217 | multiline=False
+2026-10-20T14:43:56+00:00 | read | chunk_00005.csv | bytes=268,435,775 | multiline=False
+2026-10-20T14:43:56+00:00 | read | chunk_00006.csv | bytes=268,435,796 | multiline=False
+2026-10-20T14:43:56+00:00 | read | chunk_00007.csv | bytes=268,435,482 | multiline=False
+2026-10-20T14:43:56+00:00 | read | chunk_00008.csv | bytes=268,436,154 | multiline=False
+2026-10-20T14:43:56+00:00 | read | chunk_00009.csv | bytes=268,436,935 | multiline=False
+2026-10-20T14:43:56+00:00 | read | chunk_00010.csv | bytes=268,435,956 | multiline=False
+2026-10-20T14:43:57+00:00 | read | chunk_00011.csv | bytes=268,437,181 | multiline=False
+2026-10-20T14:43:57+00:00 | read | chunk_00012.csv | bytes=268,435,991 | multiline=False
+2026-10-20T14:43:57+00:00 | read | chunk_00013.csv | bytes=268,436,235 | multiline=False
+2026-10-20T14:43:57+00:00 | read | chunk_00014.csv | bytes=268,436,541 | multiline=False
+2026-10-20T14:43:57+00:00 | read | chunk_00015.csv | bytes=268,435,616 | multiline=False
+2026-10-20T14:43:57+00:00 | read | chunk_00016.csv | bytes=268,437,452 | multiline=False
+2026-10-20T14:43:57+00:00 | read | chunk_00017.csv | bytes=268,436,086 | multiline=False
+2026-10-20T14:43:57+00:00 | read | chunk_00018.csv | bytes=268,436,606 | multiline=False
+2026-10-20T14:43:58+00:00 | read | chunk_00019.csv | bytes=268,436,035 | multiline=False
+2026-10-20T14:43:58+00:00 | read | chunk_00020.csv | bytes=268,436,819 | multiline=False
+2026-10-20T14:43:58+00:00 | read | chunk_00021.csv | bytes=268,435,565 | multiline=False
+2026-10-20T14:43:58+00:00 | read | chunk_00022.csv | bytes=268,435,540 | multiline=False
+2026-10-20T14:43:58+00:00 | read | chunk_00023.csv | bytes=268,435,796 | multiline=False
+2026-10-20T14:43:58+00:00 | read | chunk_00024.csv | bytes=268,436,003 | multiline=False
+2026-10-20T14:43:58+00:00 | read | chunk_00025.csv | bytes=268,435,589 | multiline=False
+2026-10-20T14:43:58+00:00 | read | chunk_00026.csv | bytes=268,435,703 | multiline=False
+2026-10-20T14:43:59+00:00 | read | chunk_00027.csv | bytes=268,436,970 | multiline=False
+2026-10-20T14:43:59+00:00 | read | chunk_00028.csv | bytes=268,435,977 | multiline=False
+2026-10-20T14:43:59+00:00 | read | chunk_00029.csv | bytes=268,436,711 | multiline=False
+2026-10-20T14:43:59+00:00 | read | chunk_00030.csv | bytes=268,438,617 | multiline=False
+2026-10-20T14:43:59+00:00 | read | chunk_00031.csv | bytes=268,440,012 | multiline=False
+2026-10-20T14:43:59+00:00 | read | chunk_00032.csv | bytes=360,142 | multiline=False
+2026-10-20T14:44:00+00:00 | rows_in=6,094,047 (nguồn: split_manifest)
+2026-10-20T14:47:46+00:00 | rows_clean=6,074,658 | dropped=19,389
+2026-10-20T14:48:28+00:00 | success | rows_in=6,094,047 clean=6,074,658 dropped=19,389 | daily=6,074,658 summary=1,592,208 | duration=282.0s (NFR2 <= 600s)

@@ -1,0 +1,16 @@
+=== env_check 2026-10-20T02:36:19+00:00 ===
+Python   : 3.12.10 (D:\Edu\BD\bigdata-project\.venv\Scripts\python.exe)
+JAVA_HOME: D:\Code\SDK\jdk\jdk-17.0.20.1+1
+Java     : openjdk version "17.0.20.1" 2026-08-18
+Spark    : 3.5.1
+Count    : 1000000 (mong đợi 1000000)
+RESULT : PASS
+
+=== env_check 2026-10-21T17:11:56+00:00 ===
+Python   : 3.12.10 (E:\bigdata-project\.venv\Scripts\python.exe)
+JAVA_HOME: D:\Code\SDK\jdk\jdk-17.0.20.1+1
+Java     : openjdk version "17.0.20.1" 2026-08-18
+Spark    : 3.5.1
+Count    : 1000000 (mong đợi 1000000)
+RESULT : PASS
+

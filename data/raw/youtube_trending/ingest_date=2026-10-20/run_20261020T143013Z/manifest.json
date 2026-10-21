@@ -1,0 +1,22 @@
+{
+  "dataset": "youtube_trending",
+  "run_id": "run_20261020T143013Z",
+  "source": "E:\\bigdata-project\\data\\raw\\trending_yt_videos_113_countries.csv",
+  "ingested_at_utc": "2026-10-20T14:30:13+00:00",
+  "bytes": 8591418141,
+  "sha256": "4310930bd2d18b66710249c3f33b2a6c0b627b61a1a65dc7e9a9a990d548ac12",
+  "destination": "data\\raw\\youtube_trending\\ingest_date=2026-10-20\\run_20261020T143013Z",
+  "status": "success",
+  "on_duplicate": "skip",
+  "files": [
+    {
+      "name": "trending_yt_videos_113_countries.csv",
+      "source": "E:\\bigdata-project\\data\\raw\\trending_yt_videos_113_countries.csv",
+      "bytes": 8591418141,
+      "sha256": "4310930bd2d18b66710249c3f33b2a6c0b627b61a1a65dc7e9a9a990d548ac12",
+      "destination": "data\\raw\\youtube_trending\\ingest_date=2026-10-20\\run_20261020T143013Z\\trending_yt_videos_113_countries.csv",
+      "rows_estimate": 128341650
+    }
+  ],
+  "skipped_duplicates": []
+}

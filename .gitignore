@@ -5,17 +5,26 @@ __pycache__/
 *.py[cod]
 .env
 
-# --- dữ liệu lớn & evidence runtime (giữ thư mục, không commit nội dung) ---
+# --- dữ liệu lớn: KHÔNG commit raw / processed / work ---
 data/raw/*
 !data/raw/.gitkeep
+# ... NHƯNG commit manifest.json (vài KB) -> evidence TRACE khớp raw file, GV audit được
+!data/raw/*/
+!data/raw/*/ingest_date=*/
+!data/raw/*/ingest_date=*/run_*/
+data/raw/*/ingest_date=*/run_*/*
+!data/raw/*/ingest_date=*/run_*/manifest.json
 data/processed/*
 !data/processed/.gitkeep
 # CSV chunk đã chuẩn hóa (derived từ raw, không commit)
 data/work/*
 !data/work/.gitkeep
-# data/sample được commit làm sample cho giảng viên chạy thử
+
+# --- evidence runtime: COMMIT log (vài KB) để GV clone repo là thấy bằng chứng ---
 logs/*
 !logs/.gitkeep
+!logs/*.txt
+!logs/*.log
 
 # --- Spark local ---
 spark-warehouse/

@@ -36,6 +36,51 @@ MAX_RECORD_BYTES = 20 * 1024 * 1024  # guard: lệch nháy -> dừng sớm thay 
 VALIDATE_FIRST = 500                  # số record kiểm tra cột/ chunk
 
 
+def count_records(source: Path) -> dict:
+    """Đếm record chuẩn RFC4180 trong CSV (1 record có thể nhiều dòng vật lý).
+
+    Dùng cùng thuật toán parity dấu nháy kép như split_file() nhưng KHÔNG ghi file,
+    chỉ quét 1 lần -> trả về số record thật (không phải số dòng vật lý).
+
+    Trả về dict: records, columns, physical_lines, multi_line.
+    """
+    header: list[str] = []
+    in_quotes = False
+    records = 0
+    physical_lines = 0
+    multi_line = False
+    pending = False  # đang giữ dòng thuộc record chưa kết thúc
+
+    with source.open("r", encoding="utf-8-sig", errors="replace") as src:
+        for i, line in enumerate(src):
+            physical_lines += 1
+            content = line[:-1] if line.endswith("\n") else line
+            odd = content.count('"') % 2
+            if i == 0:  # header
+                header = next(csv.reader([content]))
+                if odd:
+                    raise SystemExit("header có số dấu \" lẻ -> không phải CSV chuẩn RFC4180")
+                continue
+            if odd:
+                in_quotes = not in_quotes
+                multi_line = True
+            if in_quotes:  # dòng nằm TRONG ô -> record chưa kết thúc
+                pending = True
+                continue
+            if content.strip() == "":
+                continue
+            records += 1
+            pending = False
+    if pending:  # file bị cắt giữa record -> cảnh báo, không tự sửa
+        raise SystemExit("CSV kết thúc giữa chừng một record (dấu \" không cân bằng)")
+    return {
+        "records": records,
+        "columns": len(header),
+        "physical_lines": physical_lines,
+        "multi_line": multi_line,
+    }
+
+
 def split_file(source: Path, out_dir: Path, chunk_mb: int = 256) -> dict:
     """Tách source thành các chunk 1-dòng-1-record. Idempotent (có manifest -> skip)."""
     manifest_path = out_dir / "split_manifest.json"

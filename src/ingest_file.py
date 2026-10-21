@@ -18,16 +18,21 @@ Chạy:
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
+import io
 import json
 import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from split_csv import count_records
+
 ROOT = Path(__file__).resolve().parents[1]
 LOG_FILE = ROOT / "logs" / "ingest.log"
 ALLOWED_SUFFIX = {".csv", ".json", ".zip", ".bz2", ".gz", ".tar", ".txt", ".parquet"}
+csv.field_size_limit(10**8)  # ô description có thể rất dài
 
 
 def log(msg: str) -> None:
@@ -46,13 +51,32 @@ def sha256_of(path: Path) -> str:
     return digest.hexdigest()
 
 
-def quality_gate(path: Path) -> tuple[list[str], int | None]:
-    """Kiểm tra tối thiểu trước khi chấp nhận ingestion. Trả (lỗi, rows_ước tính)."""
+def head_is_multiline_csv(head: bytes) -> bool:
+    """CSV có ô chứa newline không (1 record = N dòng vật lý)?
+
+    So số record parse được (csv.reader) với số dòng vật lý trong phần đầu file:
+    nếu parse được ÍT record hơn số dòng -> chắc chắn là CSV đa dòng.
+    """
+    text = head.decode("utf-8-sig", errors="replace")
+    physical = text.count("\n")
+    try:
+        parsed = sum(1 for _ in csv.reader(io.StringIO(text)))
+    except csv.Error:
+        return True  # không parse sạch -> coi như CSV đa dòng (phải chuẩn hóa trước)
+    return parsed < physical
+
+
+def quality_gate(path: Path) -> tuple[list[str], dict]:
+    """Kiểm tra tối thiểu trước khi chấp nhận ingestion. Trả (lỗi, thông tin rows)."""
     errors: list[str] = []
-    rows: int | None = None
+    info: dict = {
+        "rows_estimate": None,
+        "rows_estimate_kind": "unknown",
+        "rows_estimate_note": "",
+    }
 
     if not path.exists():
-        return [f"không tồn tại: {path}"], None
+        return [f"không tồn tại: {path}"], info
     size = path.stat().st_size
     if size == 0:
         errors.append("bytes = 0 (file rỗng)")
@@ -64,11 +88,21 @@ def quality_gate(path: Path) -> tuple[list[str], int | None]:
         if not head and size > 0:
             errors.append("không đọc được nội dung")
         elif path.suffix.lower() == ".csv" and head:
-            lines = head.count(b"\n")
-            rows = lines if len(head) >= size else round(lines * size / len(head))
+            if head_is_multiline_csv(head):
+                # 1 record = N dòng vật lý -> đếm newline cho ra số ảo, KHÔNG dùng làm rows
+                info["rows_estimate_kind"] = "multiline_csv"
+                info["rows_estimate_note"] = (
+                    "CSV nhiều dòng (ô 'description' chứa newline) -> số dòng vật lý KHÔNG "
+                    "phải số record. Dùng --count-records hoặc src/verify_raw_records.py để "
+                    "lấy số record thật (chuẩn RFC4180)."
+                )
+            else:
+                lines = head.count(b"\n")
+                info["rows_estimate"] = lines if len(head) >= size else round(lines * size / len(head))
+                info["rows_estimate_kind"] = "physical_lines"
     except OSError as exc:
         errors.append(f"không mở được file: {exc}")
-    return errors, rows
+    return errors, info
 
 
 def collect_sources(source: Path) -> list[Path]:
@@ -119,6 +153,11 @@ def main() -> int:
         default="skip",
         help="xử lý khi sha256 đã tồn tại trong raw (mặc định: skip = idempotent)",
     )
+    parser.add_argument(
+        "--count-records",
+        action="store_true",
+        help="đếm số record thật chuẩn RFC4180 (chậm với file lớn, dùng cho evidence)",
+    )
     args = parser.parse_args()
 
     source = Path(args.source).expanduser().resolve()
@@ -131,11 +170,11 @@ def main() -> int:
         return 1
 
     # --- 2. Quality gate (fail fast) -------------------------------------
-    gate: dict[Path, tuple[list[str], int | None]] = {}
+    gate: dict[Path, tuple[list[str], dict]] = {}
     failed = False
     for path in sources:
-        errors, rows = quality_gate(path)
-        gate[path] = (errors, rows)
+        errors, info = quality_gate(path)
+        gate[path] = (errors, info)
         for err in errors:
             log(f"GATE_FAIL | {path.name} | {err}")
             failed = True
@@ -177,17 +216,31 @@ def main() -> int:
         if target.exists():  # trùng tên trong cùng run -> prefix thư mục cha
             target = dest_dir / f"{path.parent.name}__{path.name}"
         shutil.copy2(path, target)
-        _, rows = gate[path]
-        entries.append(
-            {
-                "name": target.name,
-                "source": str(path),
-                "bytes": target.stat().st_size,
-                "sha256": sha256_of(target),
-                "destination": rel_to_root(target),
-                "rows_estimate": rows,
-            }
-        )
+        info = gate[path][1]
+        entry = {
+            "name": target.name,
+            "source": str(path),
+            "bytes": target.stat().st_size,
+            "sha256": sha256_of(target),
+            "destination": rel_to_root(target),
+            "rows_estimate": info["rows_estimate"],
+            "rows_estimate_kind": info["rows_estimate_kind"],
+        }
+        if info["rows_estimate_note"]:
+            entry["rows_estimate_note"] = info["rows_estimate_note"]
+        if args.count_records and target.suffix.lower() == ".csv":
+            counted = count_records(target)
+            entry["records"] = counted["records"]
+            entry["records_source"] = "rfc4180_counter"
+            entry["records_columns"] = counted["columns"]
+            entry["records_physical_lines"] = counted["physical_lines"]
+            entry["records_multi_line_csv"] = counted["multi_line"]
+            log(
+                f"count_records | {target.name} | records={counted['records']:,} "
+                f"| physical_lines={counted['physical_lines']:,} "
+                f"| multi_line={counted['multi_line']}"
+            )
+        entries.append(entry)
 
     # --- 5. Manifest (giấy khai sinh của lần ingest) ----------------------
     total_bytes = sum(e["bytes"] for e in entries)
@@ -206,6 +259,10 @@ def main() -> int:
         "files": entries,
         "skipped_duplicates": skipped,
     }
+    if len(entries) == 1 and "records" in entries[0]:
+        # file đơn -> số record thật đặt ở cấp manifest cho tiện tra cứu
+        manifest["records"] = entries[0]["records"]
+        manifest["records_source"] = entries[0]["records_source"]
     manifest_path = dest_dir / "manifest.json"
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
