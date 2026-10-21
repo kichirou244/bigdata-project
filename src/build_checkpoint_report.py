@@ -399,6 +399,7 @@ def build() -> int:
             "  amendments[]  : 1 (ghi mọi thay đổi metadata, kèm mốc thời gian)",
             "",
             "Log: logs/env_check.txt · logs/ingest.log · logs/transform.log",
+            "Đếm record: src/verify_raw_records.py (chuẩn RFC4180, 86,7 s)",
         ],
         mono=True, size=10, card_h=3.85,
     )
@@ -523,7 +524,8 @@ def validate(prs, slides, tag: str = "") -> int:
         if sh.has_text_frame
     )
     for needle in (tag, "6.094.047", "8.591.418.141", "4310930bd2d1",
-                   "run_20261020T143013Z", "logs/ingest.log", "logs/env_check.txt"):
+                   "run_20261020T143013Z", "logs/ingest.log", "logs/env_check.txt",
+                   "verify_raw_records", "duplicate_skip", "6094047"):
         if needle and needle not in full:
             problems.append(f"thiếu nội dung '{needle}'")
 
