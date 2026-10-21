@@ -7,10 +7,11 @@ Output:
   docs/Checkpoint2_Brief_Filled.docx
 
 Tự động điền:
-  * bảng "Tên nhóm / commit / Environment / Source / Ingestion command / Raw location /
-    Manifest-log / Rerun behavior / Blocker / Owner-deadline"  (bảng cuối của mẫu)
-  * tick "Có" ở bảng "Evidence đầu buổi"
-  * phần EXIT TICKET (4 câu) + trả lời
+  * tick "☒ Có" ở bảng "Checklist giảng viên tại bàn"
+  * bảng thông tin cuối mẫu (Tên nhóm / Đề tài / Git / Environment / Source /
+    Ingestion command / Raw location / Manifest-log / Rerun behavior / Blocker /
+    Owner-deadline)
+  * 4 dòng trả lời EXIT TICKET ngay tại chỗ (thay dòng "____" của mẫu)
   * bảng đối chiếu RUBRIC -> artifact/evidence
 
 Chạy:
@@ -24,7 +25,6 @@ import sys
 from pathlib import Path
 
 import docx
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,7 +38,39 @@ TEAM = (
     "  • Trần Thị Khánh Linh – Parquet phân vùng + DuckDB (schema, query)\n"
     "  • Đoàn Ngọc Trân Châu – Dashboard Streamlit + tài liệu (dashboard.py, README)"
 )
-TITLE = "Phân tích Xu hướng & Tốc độ Tăng trưởng Video Thịnh hành trên YouTube (YouTube Trending Analytics)"
+TITLE = ("Phân tích Xu hướng & Tốc độ Tăng trưởng Video Thịnh hành trên YouTube "
+         "(YouTube Trending Analytics)")
+
+EXIT_TICKET = [
+    (
+        "python src\\env_check.py\n"
+        "→ in ra Spark version + phép tính Spark (Count 1.000.000) + RESULT: PASS, exit code 0.\n"
+        "Output được append vào logs/env_check.txt (đã commit vào git)."
+    ),
+    (
+        "Ghi trong metadata/README.md + manifest.json của từng lần ingest:\n"
+        "  dataset + URL nguồn + license (ODC-By) + ngày snapshot tải (2026-10-20)\n"
+        "  + ingested_at_utc + SHA-256 + bytes + số record (đếm chuẩn RFC4180).\n"
+        "Nguồn tự cập nhật hằng ngày → mỗi lần ingest là một run_id riêng, không ghi đè."
+    ),
+    (
+        "Mặc định là skip-if-same-hash (idempotent):\n"
+        "  lần 1  → tạo run_<UTC_TIMESTAMP>/ + copy file + ghi manifest.json\n"
+        "  lần 2,3 → SHA-256 trùng → SKIP, KHÔNG tạo run mới, raw storage giữ nguyên\n"
+        "            (log ghi rõ 'duplicate_skip → raw storage KHÔNG thay đổi')\n"
+        "  file mới / version mới (hash khác) → tạo run_id mới (append, không overwrite)\n"
+        "  nguồn hỏng (quality gate fail) → fail-fast (exit 1), không tạo 'raw' giả\n"
+        "Có thể ép hành vi khác: --on-duplicate new-run (luôn tạo run) | fail (thoát lỗi)."
+    ),
+    (
+        "Rủi ro đã xảy ra & đã xử lý: schema nguồn Plan B khác đề cương (không có category_id,\n"
+        "description nhiều dòng khiến Spark đếm sai 17 lần) → adapter SRC_MAP + split_csv.py\n"
+        "+ verify_raw_records.py (đếm lại 6.094.047 record, khớp manifest).\n"
+        "Rủi ro còn lại: file 8,59 GB mỗi snapshot + nguồn cập nhật hằng ngày → phải chạy\n"
+        "ingest snapshot mới để so sánh growth giữa 2 kỳ, và phải giữ disk trống đủ.\n"
+        "Owner: Phúc (transform) + Bảo (ingest) – deadline: trước Buổi 7."
+    ),
+]
 
 
 def git(*args: str) -> str:
@@ -56,6 +88,17 @@ def fill_cell(cell, text: str) -> None:
     run.font.size = Pt(10)
 
 
+def fill_paragraph(paragraph, text: str) -> None:
+    """Ghi text vào 1 paragraph, giữ style run đầu tiên."""
+    runs = list(paragraph.runs)
+    if not runs:
+        paragraph.add_run(text)
+        return
+    for r in runs[1:]:
+        r._r.getparent().remove(r._r)
+    runs[0].text = text
+
+
 def build() -> int:
     if not TEMPLATE.exists():
         raise SystemExit(f"Không tìm thấy template: {TEMPLATE}")
@@ -64,23 +107,25 @@ def build() -> int:
     shutil.copy2(TEMPLATE, OUT)
     doc = docx.Document(str(OUT))
 
-    commit = git("rev-parse", "--short", "HEAD")
+    # chỉ tham chiếu TAG (không phụ thuộc HEAD) -> sinh lại cho kết quả giống hệt nhau
     tag = git("describe", "--tags", "--abbrev=0")
     tag_commit = git("rev-parse", "--short", f"{tag}^{{commit}}")
 
-    # --- 1. Tick "Có" ở bảng evidence đầu buổi (bảng index 1) -------------
+    # --- 1. Tick "☒ Có" ở bảng checklist giảng viên tại bàn ----------------
+    ticked = 0
     for row in doc.tables[1].rows[1:]:
         cell = row.cells[2]
         for para in cell.paragraphs:
             for run in para.runs:
                 if "□ Có" in run.text:
                     run.text = run.text.replace("□ Có", "☒ Có")
+                    ticked += 1
 
-    # --- 2. Điền bảng thông tin cuối mẫu (bảng index 5) -------------------
+    # --- 2. Điền bảng thông tin cuối mẫu ----------------------------------
     answers = [
         TEAM,
         TITLE,
-        f"{commit} · tag {tag} ({tag_commit}) · nhánh main · repo: bigdata-project",
+        f"tag {tag} ({tag_commit}) · nhánh main · repo: bigdata-project",
         "Python: 3.12.10  |  Java: 17.0.20.1 (Temurin)  |  Spark: 3.5.1  |  "
         "Mode: local[*] trên Windows (JDK 17 + pyspark 3.5.1 trong .venv)",
         "Kaggle – asaniczka/trending-youtube-videos-113-countries (license ODC-By)\n"
@@ -93,13 +138,15 @@ def build() -> int:
         "  ├─ trending_yt_videos_113_countries.csv  (8.591.418.141 bytes – không rỗng)\n"
         "  └─ manifest.json                         (status: success)",
         "Manifest: data/raw/youtube_trending/ingest_date=2026-10-20/run_20261020T143013Z/manifest.json\n"
+        "  (records=6094047 đếm chuẩn RFC4180, amendments[] ghi lại mọi thay đổi metadata)\n"
         "Log: logs/env_check.txt · logs/ingest.log · logs/transform.log\n"
         "(cả manifest + log đã commit vào git → GV clone repo là thấy bằng chứng)",
         "Mặc định --on-duplicate skip (idempotent theo SHA-256):\n"
         "  • lần 1   → tạo run_<UTC_TIMESTAMP>/ + copy + manifest\n"
         "  • lần 2,3 → hash trùng → SKIP, raw KHÔNG thay đổi (log: duplicate_skip)\n"
         "  • hash khác → run_id MỚI (append, không overwrite) | nguồn hỏng → fail-fast\n"
-        "  • ép khác: --on-duplicate new-run | fail",
+        "  • ép khác: --on-duplicate new-run | fail\n"
+        "Đã chạy thật 3 lần liên tiếp trên file 8,59 GB → raw vẫn đúng 1 run.",
         "Đã xử lý: schema nguồn Plan B khác đề cương (thiếu category_id, description nhiều dòng)\n"
         "→ adapter SRC_MAP + split_csv.py; thiếu winutils.exe khi Spark ghi Parquet → tự cấu hình.\n"
         "Còn lại: dung lượng 8,59 GB/ngày + cần ingest snapshot mới để so sánh growth 2 kỳ.",
@@ -111,54 +158,14 @@ def build() -> int:
     for (row, answer) in zip(form.rows, answers):
         fill_cell(row.cells[1], answer)
 
-    # --- 3. EXIT TICKET + đối chiếu rubric --------------------------------
-    doc.add_paragraph()
-    head = doc.add_paragraph()
-    run = head.add_run("EXIT TICKET – TRẢ LỜI CỦA NHÓM")
-    run.bold = True
-    run.font.size = Pt(13)
-
-    ticket = [
-        (
-            "Câu 1 – Một lệnh duy nhất để kiểm tra environment của nhóm là gì?",
-            "python src\\env_check.py\n"
-            "→ in ra Spark version + phép tính Spark (Count 1.000.000) + RESULT: PASS, exit code 0.\n"
-            "Output được append vào logs/env_check.txt (đã commit vào git).",
-        ),
-        (
-            "Câu 2 – Nhóm xác định version/snapshot dữ liệu bằng cách nào?",
-            "Ghi trong metadata/README.md + manifest.json của từng lần ingest:\n"
-            "  dataset + URL nguồn + license (ODC-By) + ngày snapshot tải (2026-10-20)\n"
-            "  + ingested_at_utc + SHA-256 của file + kích thước bytes + số record (đếm RFC4180).\n"
-            "Nguồn tự cập nhật hằng ngày → mỗi lần ingest là một run_id riêng, không ghi đè.",
-        ),
-        (
-            "Câu 3 – Nếu chạy ingestion 3 lần, raw storage thay đổi thế nào?",
-            "Mặc định là skip-if-same-hash (idempotent):\n"
-            "  lần 1  → tạo run_<UTC_TIMESTAMP>/ + copy file + ghi manifest.json\n"
-            "  lần 2,3 → SHA-256 trùng → SKIP, KHÔNG tạo run mới, raw storage giữ nguyên\n"
-            "            (log ghi rõ 'duplicate_skip → raw storage KHÔNG thay đổi')\n"
-            "  file mới / version mới (hash khác) → tạo run_id mới (append, không overwrite)\n"
-            "  nguồn hỏng (quality gate fail) → fail-fast, không tạo 'raw' giả\n"
-            "Có thể ép hành vi khác: --on-duplicate new-run (luôn tạo run) | fail (thoát lỗi).",
-        ),
-        (
-            "Câu 4 – Rủi ro lớn nhất trước Buổi 7 là gì?",
-            "Rủi ro đã xảy ra & đã xử lý: schema nguồn Plan B khác đề cương (không có category_id,\n"
-            "description nhiều dòng khiến Spark đếm sai 17 lần) → adapter SRC_MAP + split_csv.py.\n"
-            "Rủi ro còn lại: file 8,59 GB mỗi snapshot + nguồn cập nhật hằng ngày → phải chạy\n"
-            "ingest snapshot mới để so sánh growth giữa 2 kỳ, và phải giữ disk trống đủ.\n"
-            "Owner: Phúc (transform) + Bảo (ingest) – deadline: trước Buổi 7.",
-        ),
-    ]
-    for question, answer in ticket:
-        q = doc.add_paragraph()
-        r = q.add_run(question)
-        r.bold = True
-        r.font.size = Pt(11)
-        a = doc.add_paragraph(answer)
-        for run in a.runs:
-            run.font.size = Pt(10)
+    # --- 3. Điền 4 dòng trả lời EXIT TICKET ngay tại chỗ -------------------
+    blanks = [p for p in doc.paragraphs
+              if p.text.strip() and set(p.text.strip()) == {"_"} and len(p.text.strip()) >= 40]
+    if len(blanks) != len(EXIT_TICKET):
+        raise SystemExit(
+            f"Template có {len(blanks)} dòng trống, cần {len(EXIT_TICKET)} – kiểm lại template")
+    for para, answer in zip(blanks, EXIT_TICKET):
+        fill_paragraph(para, answer)
 
     # --- 4. Bảng đối chiếu rubric -> evidence -----------------------------
     doc.add_paragraph()
@@ -168,12 +175,19 @@ def build() -> int:
     run.font.size = Pt(13)
 
     rows = [
-        ("Environment reproducible (2.0)", "src/env_check.py · logs/env_check.txt (RESULT: PASS)"),
-        ("Source & provenance (1.5)", "metadata/README.md · manifest.json (URL, license, snapshot, SHA-256)"),
-        ("Ingestion job (2.5)", "src/ingest_file.py · logs/ingest.log (chạy thật 8,59 GB + 3 lần rerun)"),
-        ("Raw storage (2.0)", "data/raw/<dataset>/ingest_date=2026-10-20/run_20261020T143013Z/ + manifest.json"),
-        ("Repo & report (1.0)", f"README.md · tag {tag} ({tag_commit}) · docs/Checkpoint2_Report_*.pptx"),
-        ("Team understanding (1.0)", "Roles + trade-off ghi ở README §1-11 và docs/checkpoint2_slides_noidung.md"),
+        ("Environment reproducible (2.0)",
+         "src/env_check.py · logs/env_check.txt (RESULT: PASS)"),
+        ("Source & provenance (1.5)",
+         "metadata/README.md · manifest.json (URL, license, snapshot, SHA-256)"),
+        ("Ingestion job (2.5)",
+         "src/ingest_file.py · logs/ingest.log (chạy thật 8,59 GB + 3 lần rerun)"),
+        ("Raw storage (2.0)",
+         "data/raw/<dataset>/ingest_date=2026-10-20/run_20261020T143013Z/ + manifest.json"),
+        ("Repo & report (1.0)",
+         f"README.md · tag {tag} ({tag_commit}) · docs/Checkpoint2_Report_*.pptx · "
+         f"docs/Checkpoint2_Brief_Filled.docx"),
+        ("Team understanding (1.0)",
+         "Roles + trade-off ghi ở README §1-9b và docs/checkpoint2_slides_noidung.md"),
     ]
     table = doc.add_table(rows=1, cols=2)
     table.style = "Table Grid"
@@ -200,7 +214,46 @@ def build() -> int:
 
     doc.save(str(OUT))
     print(f"OK -> {OUT}")
-    print(f"   commit={commit} tag={tag} ({tag_commit})")
+    print(f"   tag={tag} ({tag_commit}) · tick {ticked} ô · "
+          f"{len(blanks)} dòng exit-ticket đã điền")
+    return validate(doc, tag_commit)
+
+
+def validate(doc, tag_commit: str) -> int:
+    """Kiểm tra: không còn ô trống, không còn dòng '____', bảng không tràn trang."""
+    problems: list[str] = []
+    sec = doc.sections[0]
+    usable = (sec.page_width - sec.left_margin - sec.right_margin) / 914400
+
+    for ti, table in enumerate(doc.tables):
+        for row in table.rows:
+            for cell in row.cells:
+                if cell.width and cell.width / 914400 > usable + 0.05:
+                    problems.append(f"bảng {ti}: cột rộng {cell.width / 914400:.2f}in > {usable:.2f}in")
+
+    form = doc.tables[5]
+    empty = [i for i, row in enumerate(form.rows) if not row.cells[1].text.strip()]
+    if empty:
+        problems.append(f"bảng thông tin: ô trống ở hàng {empty}")
+
+    blanks = [p.text for p in doc.paragraphs
+              if p.text.strip() and set(p.text.strip()) == {"_"} and len(p.text.strip()) >= 40]
+    if blanks:
+        problems.append(f"còn {len(blanks)} dòng '____' chưa điền (exit ticket)")
+
+    full = "\n".join(p.text for p in doc.paragraphs)
+    full += "\n".join(c.text for t in doc.tables for r in t.rows for c in r.cells)
+    for needle in (tag_commit, "checkpoint-2", "6.094.047", "8.591.418.141", "☒ Có",
+                   "RUBRIC", "verify_raw_records"):
+        if needle not in full:
+            problems.append(f"thiếu nội dung '{needle}'")
+
+    if problems:
+        print("\nBRIEF CÓ VẤN ĐỀ:")
+        for p in problems:
+            print("  - " + p)
+        return 1
+    print("BRIEF OK: mọi ô đã điền, exit-ticket đầy đủ, bảng không tràn trang.")
     return 0
 
 

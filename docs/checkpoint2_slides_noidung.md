@@ -1,7 +1,8 @@
 # Checkpoint 2 – Nội dung 6 slide (điền vào template PPTX)
 
 > **Bản nộp đã điền sẵn:** `docs/Checkpoint2_Report_YouTube_Trending.pptx`
-> (sinh tự động bằng `python src/build_checkpoint_report.py` từ template GV cung cấp).
+> (sinh tự động bằng `python src/build_checkpoint_report.py` từ template GV cung cấp;
+>  script tự đo chữ bằng metrics thật của font và **validate không tràn khung**).
 > Bản brief đã điền: `docs/Checkpoint2_Brief_Filled.docx` (`src/build_checkpoint_brief.py`).
 > Số liệu lấy từ evidence thật: `logs/`, `_manifests/`, tag `checkpoint-2`.
 > File này giữ lại **phần lời thoại/nội dung chi tiết** để thành viên tự trình bày ≤ 4 phút.
@@ -18,7 +19,7 @@
   - Trương Đình Phúc – Spark transform (src/split_csv.py, src/transform.py)
   - Trần Thị Khánh Linh – Parquet phân vùng + DuckDB (schema, query)
   - Đoàn Ngọc Trân Châu – Dashboard Streamlit + tài liệu (src/dashboard.py, README)
-- **Git:** commit `__COMMIT__` · **tag `checkpoint-2`** · repo có README evidence checklist (mục 1–9b)
+- **Git:** tag `checkpoint-2` (commit `__COMMIT__`) · repo có README evidence checklist (mục 1–9b)
 
 ---
 
