@@ -125,7 +125,7 @@ def build() -> int:
     answers = [
         TEAM,
         TITLE,
-        f"tag {tag} ({tag_commit}) · nhánh main · repo: bigdata-project",
+        f"tag {tag} · nhánh main · repo: bigdata-project (git log -1 {tag})",
         "Python: 3.12.10  |  Java: 17.0.20.1 (Temurin)  |  Spark: 3.5.1  |  "
         "Mode: local[*] trên Windows (JDK 17 + pyspark 3.5.1 trong .venv)",
         "Kaggle – asaniczka/trending-youtube-videos-113-countries (license ODC-By)\n"
@@ -184,7 +184,7 @@ def build() -> int:
         ("Raw storage (2.0)",
          "data/raw/<dataset>/ingest_date=2026-10-20/run_20261020T143013Z/ + manifest.json"),
         ("Repo & report (1.0)",
-         f"README.md · tag {tag} ({tag_commit}) · docs/Checkpoint2_Report_*.pptx · "
+         f"README.md · tag {tag} · docs/Checkpoint2_Report_*.pptx · "
          f"docs/Checkpoint2_Brief_Filled.docx"),
         ("Team understanding (1.0)",
          "Roles + trade-off ghi ở README §1-9b và docs/checkpoint2_slides_noidung.md"),
@@ -216,10 +216,10 @@ def build() -> int:
     print(f"OK -> {OUT}")
     print(f"   tag={tag} ({tag_commit}) · tick {ticked} ô · "
           f"{len(blanks)} dòng exit-ticket đã điền")
-    return validate(doc, tag_commit)
+    return validate(doc)
 
 
-def validate(doc, tag_commit: str) -> int:
+def validate(doc) -> int:
     """Kiểm tra: không còn ô trống, không còn dòng '____', bảng không tràn trang."""
     problems: list[str] = []
     sec = doc.sections[0]
@@ -243,7 +243,7 @@ def validate(doc, tag_commit: str) -> int:
 
     full = "\n".join(p.text for p in doc.paragraphs)
     full += "\n".join(c.text for t in doc.tables for r in t.rows for c in r.cells)
-    for needle in (tag_commit, "checkpoint-2", "6.094.047", "8.591.418.141", "☒ Có",
+    for needle in ("checkpoint-2", "6.094.047", "8.591.418.141", "☒ Có",
                    "RUBRIC", "verify_raw_records"):
         if needle not in full:
             problems.append(f"thiếu nội dung '{needle}'")

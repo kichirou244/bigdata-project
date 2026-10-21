@@ -240,7 +240,7 @@ def build() -> int:
     slides = list(prs.slides)
 
     # chỉ tham chiếu TAG (không phụ thuộc HEAD) -> sinh lại báo cáo cho kết quả
-    # giống hệt nhau, không bao giờ lệch số liệu
+    # giống hệt nhau, không bao giờ lệch số liệu. Commit cụ thể: git log -1 checkpoint-2
     tag = git("describe", "--tags", "--abbrev=0")
     tag_commit = git("rev-parse", "--short", f"{tag}^{{commit}}")
 
@@ -253,7 +253,7 @@ def build() -> int:
          ["Nhóm: YouTube Trending Analytics (4 thành viên)"], size=13)
     fill(by_name(s, "Text 3"), [f"Đề tài: {TITLE}"], size=13)
     fill(by_name(s, "Text 4"),
-         [f"Git commit/tag: tag {tag} ({tag_commit})"], size=13)
+         [f"Git commit/tag: tag {tag}  (git log -1 {tag})"], size=13)
 
     # ---------------- SLIDE 2 – Architecture ------------------------------
     s = slides[1]
@@ -430,7 +430,7 @@ def build() -> int:
     fill_card(
         s, "Shape 9", "Text 11",
         [
-            f"Commit/tag: tag {tag} ({tag_commit})",
+            f"Commit/tag: tag {tag}  (git log -1 {tag})",
             "Raw/manifest/log: data/raw/youtube_trending/…/run_…/manifest.json",
             "logs/env_check.txt · logs/ingest.log · logs/transform.log",
         ],
@@ -449,7 +449,7 @@ def build() -> int:
     prs.save(str(OUT))
     print(f"OK -> {OUT}")
     print(f"   tag={tag} ({tag_commit})")
-    return validate(prs, slides, tag, tag_commit)
+    return validate(prs, slides, tag)
 
 
 # ------------------------------------------------------------------ validate
@@ -470,7 +470,7 @@ CONTAINERS: dict[int, list[tuple[str, str | None]]] = {
 NO_OVERLAP_X = {1: [("Text 2", "Text 3", "Text 4", "Shape 5")]}
 
 
-def validate(prs, slides, tag: str = "", tag_commit: str = "") -> int:
+def validate(prs, slides, tag: str = "") -> int:
     problems: list[str] = []
     slide_h = prs.slide_height / EMU_IN
     slide_w = prs.slide_width / EMU_IN
@@ -522,7 +522,7 @@ def validate(prs, slides, tag: str = "", tag_commit: str = "") -> int:
         for slide in slides for sh in slide.shapes
         if sh.has_text_frame
     )
-    for needle in (tag, tag_commit, "6.094.047", "8.591.418.141", "4310930bd2d1",
+    for needle in (tag, "6.094.047", "8.591.418.141", "4310930bd2d1",
                    "run_20261020T143013Z", "logs/ingest.log", "logs/env_check.txt"):
         if needle and needle not in full:
             problems.append(f"thiếu nội dung '{needle}'")
