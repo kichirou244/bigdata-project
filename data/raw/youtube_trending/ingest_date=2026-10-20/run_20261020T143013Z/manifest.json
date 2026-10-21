@@ -15,8 +15,29 @@
       "bytes": 8591418141,
       "sha256": "4310930bd2d18b66710249c3f33b2a6c0b627b61a1a65dc7e9a9a990d548ac12",
       "destination": "data\\raw\\youtube_trending\\ingest_date=2026-10-20\\run_20261020T143013Z\\trending_yt_videos_113_countries.csv",
-      "rows_estimate": 128341650
+      "rows_estimate": null,
+      "rows_estimate_kind": "multiline_csv",
+      "rows_estimate_note": "CSV nhiều dòng (ô 'description' chứa newline) -> số dòng vật lý KHÔNG phải số record. Số record thật xem `records` (đếm chuẩn RFC4180 bởi src/verify_raw_records.py).",
+      "records": 6094047,
+      "records_source": "rfc4180_counter",
+      "records_columns": 18,
+      "records_physical_lines": 134442959,
+      "records_multi_line_csv": true
     }
   ],
-  "skipped_duplicates": []
+  "skipped_duplicates": [],
+  "records": 6094047,
+  "records_source": "rfc4180_counter",
+  "amendments": [
+    {
+      "at_utc": "2026-10-21T17:20:17+00:00",
+      "tool": "src/verify_raw_records.py",
+      "change": "rows_estimate (ước lượng theo dòng vật lý) -> records (đếm chuẩn RFC4180)",
+      "rows_estimate_before": 128341650,
+      "rows_estimate_kind": "physical_lines",
+      "records_after": 6094047,
+      "records_source": "rfc4180_counter",
+      "duration_seconds": 86.7
+    }
+  ]
 }

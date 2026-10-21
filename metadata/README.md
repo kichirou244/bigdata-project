@@ -33,8 +33,23 @@
 
 - **Manifest**: cạnh raw tại `data/raw/<dataset>/ingest_date=.../run_.../manifest.json`
   (sha256, bytes, kích thước file, thời điểm ingest).
+  - `records: 6094047` – **số record thật**, đếm chuẩn RFC4180 bằng `src/verify_raw_records.py`
+    (86,7 s; file có 134.442.959 dòng vật lý vì ô `description` chứa newline).
+  - `rows_estimate: null` + `rows_estimate_note` – cố ý **không** ghi con số ảo (đếm newline
+    cho ra 128.341.650 ≠ số record) với CSV nhiều dòng.
+  - `amendments[]` – mọi lần bổ sung/chỉnh metadata đều được ghi lại kèm mốc thời gian.
+    Việc này **không** sửa 1 byte nào của raw data (CSV giữ nguyên byte-for-byte).
 - **Split manifest**: `data/work/split/<tên_file>/split_manifest.json`
   (số record, số chunk, bytes, duration).
 - **Transform manifest**: `data/processed/youtube_trending/_manifests/run_*.json`
   (rows_in/clean/dropped, duration – evidence NFR2).
-- **Log**: `logs/env_check.txt`, `logs/ingest.log`, `logs/transform.log`.
+- **Log**: `logs/env_check.txt`, `logs/ingest.log`, `logs/transform.log`
+  (cả ba **đã commit vào git** → GV clone repo là thấy bằng chứng).
+
+## Đường dẫn & môi trường
+
+- Repo hiện ở `E:\bigdata-project` (đã chuyển từ `D:\Edu\BD\bigdata-project`); các path cũ
+  trong log/manifest là dấu vết lịch sử của lần chạy tại máy cũ.
+- Code tự resolve đường dẫn theo vị trí file (`ROOT` = thư mục gốc repo) → chạy được ở mọi máy.
+- `hadoop/` (winutils.exe + hadoop.dll) và `data/raw/` (8,59 GB) không commit; `data/sample/`
+  (CSV synthetic) được commit để GV chạy thử ngay.

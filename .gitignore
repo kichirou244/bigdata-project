@@ -39,3 +39,4 @@ hadoop/
 .idea/
 .DS_Store
 Thumbs.db
+~$*.docx   # file khoá tạm của Word (~$...docx)

@@ -1,7 +1,10 @@
 # Checkpoint 2 – Nội dung 6 slide (điền vào template PPTX)
 
-> Chèn vào `BigData_Buoi06_DoAn2_Checkpoint2_Report_Template.pptx`, ≤ 4 phút.
+> **Bản nộp đã điền sẵn:** `docs/Checkpoint2_Report_YouTube_Trending.pptx`
+> (sinh tự động bằng `python src/build_checkpoint_report.py` từ template GV cung cấp).
+> Bản brief đã điền: `docs/Checkpoint2_Brief_Filled.docx` (`src/build_checkpoint_brief.py`).
 > Số liệu lấy từ evidence thật: `logs/`, `_manifests/`, tag `checkpoint-2`.
+> File này giữ lại **phần lời thoại/nội dung chi tiết** để thành viên tự trình bày ≤ 4 phút.
 
 ---
 
@@ -15,7 +18,7 @@
   - Trương Đình Phúc – Spark transform (src/split_csv.py, src/transform.py)
   - Trần Thị Khánh Linh – Parquet phân vùng + DuckDB (schema, query)
   - Đoàn Ngọc Trân Châu – Dashboard Streamlit + tài liệu (src/dashboard.py, README)
-- **Git:** commit `fb4c171` · **tag `checkpoint-2`** · repo có README evidence checklist
+- **Git:** commit `__COMMIT__` · **tag `checkpoint-2`** · repo có README evidence checklist (mục 1–9b)
 
 ---
 
@@ -56,10 +59,14 @@
 
 - **SOURCE:** `kaggle.com/datasets/asaniczka/trending-youtube-videos-113-countries` ·
   license **ODC-By** · snapshot **2026-10-20** (nguồn tự cập nhật hằng ngày)
-- **SCALE / VERSION:** **8.591.418.141 bytes (8,59 GB)** · **6.094.047 bản ghi / 18 cột / 113 quốc gia** ·
-  `snapshot_date` 2023-10-26 → 2026-10-20 · SHA-256 `4310930bd2d1…` (trong manifest)
+- **SCALE / VERSION:** **8.591.418.141 bytes (8,59 GB)** · **6.094.047 record / 18 cột / 113 quốc gia** ·
+  `snapshot_date` 2023-10-26 → 2026-10-20 · SHA-256 `4310930bd2d1…` (đầy đủ trong manifest)
+- **SỐ RECORD ĐÃ KIỂM CHỨNG:** `python src\verify_raw_records.py` (đếm chuẩn RFC4180, 86,7 s)
+  → **6.094.047 record** · **134.442.959 dòng vật lý** (`multi_line=True`).
+  ⚠️ Bẫy đã gặp: đọc CSV đa dòng bằng `spark.read.csv()` mặc định (multiLine=false) **đếm sai 17 lần**
+  (103.424.388 "dòng") → nhóm đã sửa ở `read_raw_sample.py` + `split_csv.py` (mục 5b, 7 của README).
 - **PROVENANCE:** file gốc giữ ngoài repo; ingest = copy + hash + ghi manifest
-  (bytes, sha256, thời điểm) → truy ngược được nguồn của từng byte trong raw.
+  (bytes, sha256, thời điểm, số record) → truy ngược được nguồn của từng byte trong raw.
 - **COMMAND + RESULT** (dán `logs/ingest.log`):
   ```
   python src\ingest_file.py --source "...trending_yt_videos_113_countries.csv" --dataset youtube_trending
@@ -76,10 +83,14 @@
   ├─ trending_yt_videos_113_countries.csv   (8.591.418.141 bytes)
   └─ manifest.json                          (status: success)
   ```
-- **Manifest fields:** `dataset, source, ingest_date, run_id, files[{name, bytes, sha256}],
-  total_bytes, started/finished_utc, status` → khớp 1-1 với file trên đĩa.
+- **Manifest fields:** `dataset, source, ingest_date, run_id, files[{name, bytes, sha256, records}],
+  total_bytes, started/finished_utc, status, records, amendments[]` → khớp 1-1 với file trên đĩa.
+  - `records: 6094047` (đếm chuẩn RFC4180 bởi `src/verify_raw_records.py`) — khớp `split_manifest.json`.
+  - `rows_estimate: null` + `rows_estimate_note` — **cố ý không ghi con số ảo** cho CSV đa dòng.
+  - `amendments[]` — mọi lần bổ sung metadata đều ghi lại kèm mốc thời gian (audit trail);
+    **không** sửa 1 byte nào của raw (CSV giữ nguyên byte-for-byte).
 - **Minh chứng đọc lại:** `python src\read_raw_sample.py` → Spark đọc được schema,
-  số dòng, 5 dòng đầu từ chính file trong raw.
+  `rows = 6,094,047` (khớp manifest), 5 record đầu từ chính file trong raw.
 - **Bổ sung P3:** `data/work/split/.../split_manifest.json` (6.094.047 record → 33 chunk,
   204,8 s) và `data/processed/.../_manifests/run_*.json` (duration 282 s ≤ NFR2).
 
@@ -87,12 +98,17 @@
 
 ## SLIDE 6 – Rerun, blocker, next action
 
-- **RERUN** (chạy 3 lần cùng file, `--on-duplicate skip` mặc định):
+- **RERUN** (đã chạy thật 3 lần liên tiếp trên chính file 8,59 GB, `--on-duplicate skip` mặc định):
   - Lần 1: tạo run + copy + manifest · Lần 2 & 3: hash trùng → **SKIP**, raw giữ nguyên
-    (log `duplicate_skip`) → **idempotent**;
-  - file hash khác → run mới (append, không overwrite) · file hỏng → fail-fast, không tạo raw giả.
+    (log `duplicate_skip` trong `logs/ingest.log`) → **idempotent**, raw storage vẫn đúng 1 run;
+  - file hash khác → run mới (append, không overwrite) · file hởng / quality gate fail → fail-fast
+    (exit code 1), không tạo raw giả;
+  - ép hành vi khác đã test: `--on-duplicate new-run` (luôn tạo run mới) và `--on-duplicate fail`
+    (thoát lỗi).
 - **BLOCKER lớn nhất:** nguồn Plan B có schema khác đề cương (không `category_id`, `description`
-  nhiều dòng) → giải pháp adapter `SRC_MAP` + `split_csv.py`; **owner: Phúc** (xong 2026-10-20).
-- **EVIDENCE links:** README mục 1–11 · `logs/*.log` · `_manifests/*.json` · tag `checkpoint-2`.
+  nhiều dòng khiến Spark đếm sai 17 lần) → giải pháp adapter `SRC_MAP` + `split_csv.py`
+  + `verify_raw_records.py`; **owner: Phúc** (xong 2026-10-20).
+- **EVIDENCE links:** README mục 1–9b · `logs/*.log` · `logs/env_check.txt` · `manifest.json` ·
+  `docs/Checkpoint2_Report_YouTube_Trending.pptx` · `docs/Checkpoint2_Brief_Filled.docx` · tag `checkpoint-2`.
 - **TRƯỚC BUỔI 7:** chạy ingest snapshot mới (dữ liệu cập nhật hằng ngày) để so sánh
   growth giữa 2 snapshot; demo dashboard trực tiếp; chốt slide cuối Đồ án 3 (kế hoạch ML/Nâng cao).

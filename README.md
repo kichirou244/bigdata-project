@@ -28,13 +28,13 @@ bigdata-project/
 │  ├─ transform.py        ← P3: Spark transform → Parquet phân vùng (FR1–FR4)
 │  └─ dashboard.py        ← Serve: Streamlit + DuckDB (NFR3 query ≤ 2s)
 ├─ data/
-│  ├─ raw/                ← raw storage (KHÔNG commit nội dung)
+│  ├─ raw/                ← raw storage (CSV 8,59 GB KHÔNG commit; manifest.json ĐÃ commit)
 │  ├─ sample/             ← sample SYNTHETIC để dev (đã commit cho GV chạy thử)
 │  ├─ work/               ← CSV chunk đã chuẩn hóa (derived, KHÔNG commit)
 │  └─ processed/          ← Parquet đầu ra của transform (KHÔNG commit)
-├─ logs/                  ← env_check.txt, ingest.log (KHÔNG commit nội dung)
+├─ logs/                  ← env_check.txt, ingest.log, transform.log (ĐÃ commit – evidence)
 ├─ metadata/              ← ghi chú schema/định nghĩa cột (commit được)
-└─ docs/                  ← slide, báo cáo
+└─ docs/                  ← slide, báo cáo Checkpoint 2 (PPTX + DOCX đã điền)
 ```
 
 ## 2. Setup môi trường (≤ 10 phút)
@@ -114,6 +114,26 @@ Job làm gì: quality gate (tồn tại / bytes > 0 / đọc được / extensio
 
 Manifest gồm: `dataset, source, ingested_at_utc, bytes, sha256, destination, status` (+ `rows_estimate` cho CSV).
 
+> **Lưu ý về `rows_estimate`:** với CSV nhiều dòng (ô `description` chứa newline) thì **số dòng vật lý ≠ số record**.
+> `ingest_file.py` nhận biết trường hợp này và **không** ghi con số ảo; số record thật được đếm
+> chuẩn RFC4180 bằng `src/verify_raw_records.py` → ghi vào manifest ở trường `records`
+> (kèm `amendments[]` ghi lại mọi thay đổi, và **không** sửa 1 byte nào của raw data).
+
+### 5b. Kiểm chứng số record của raw (evidence TRACE)
+
+```powershell
+python src\verify_raw_records.py           # đếm chuẩn RFC4180 + bổ sung vào manifest
+python src\verify_raw_records.py --check   # chỉ in, không ghi
+```
+
+Kết quả trên file thật (8,59 GB): **6.094.047 record · 18 cột · 134.442.959 dòng vật lý**
+(`multi_line = True`) — 86,7 s. Con số này khớp đúng `split_manifest.json` và
+`transform` manifest (`rows_in = 6.094.047`).
+
+> ⚠️ **Bẫy đã gặp & đã sửa:** đọc CSV đa dòng bằng `spark.read.csv(path)` (multiLine=false,
+> mặc định) sẽ **đếm sai 17 lần** (103.424.388 "dòng" thay vì 6.094.047 record) vì mỗi record
+> bị cắt vỡ thành nhiều dòng vật lý. `src/read_raw_sample.py` đã sửa đúng cách này (mục 7).
+
 ## 6. Rerun behavior – câu hỏi bắt buộc của checkpoint
 
 > *"Nếu chạy ingestion job 3 lần liên tiếp, raw storage thay đổi thế nào?"*
@@ -126,6 +146,16 @@ Manifest gồm: `dataset, source, ingested_at_utc, bytes, sha256, destination, s
 
 → **Trả lời ngắn:** mặc định là *skip-if-same-hash*: chạy 3 lần cùng file → raw storage **không thay đổi sau lần 1** (idempotent); file mới/có version mới (hash khác) → tạo `run_id` mới, không bao giờ overwrite. Source hỏng → fail fast, không tạo raw giả.
 
+**Đã chạy thật 3 lần liên tiếp trên chính file 8,59 GB** (evidence trong `logs/ingest.log`):
+
+```
+2026-10-21T… | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+2026-10-21T… | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+2026-10-21T… | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+```
+
+→ raw storage **giữ nguyên đúng 1 run** sau 3 lần chạy (không nhân bản 8,59 GB).
+
 ## 7. Spark đọc sample raw (evidence cuối buổi)
 
 ```powershell
@@ -135,23 +165,46 @@ python src/read_raw_sample.py --path <csv_path>  # chỉ định cụ thể
 
 Output: `rows = ...`, `printSchema()`, 5 dòng đầu → copy vào slide/raw evidence.
 
+> ⚠️ **Bẫy CSV đa dòng (đã xử lý trong code):** raw CSV có ô `description` chứa newline → đọc bằng
+> `spark.read.csv(path)` (multiLine=false, mặc định) sẽ **đếm sai 17 lần**
+> (103.424.388 thay vì 6.094.047 record). Script đã tự nhận biết và đọc qua **33 chunk đã chuẩn hóa**
+> (1 dòng = 1 record) → `rows = 6,094,047`, khớp đúng `split_manifest.json`.
+> File nhỏ (< 64 MB) thì đọc trực tiếp với `multiLine=true` (an toàn, không OOM).
+
 ## 8. Exit ticket (trả lời sẵn)
 
-1. **Lệnh kiểm tra environment:** `python src/env_check.py` (kết quả trong `logs/env_check.txt`).
-2. **Version/snapshot dữ liệu:** DOI `10.13012/B2IDB-9307654_V1` (Illinois, bản 2022–2025) + ghi `ingested_at_utc` và SHA-256 của từng file vào manifest.
-3. **Chạy ingest 3 lần:** mặc định idempotent – hash trùng thì skip → raw không nhân bản; hash khác → run mới (append), không overwrite (xem mục 6).
-4. **Rủi ro trước Buổi 7 (ĐÃ XẢY RA & ĐÃ XỬ LÝ):** Plan A 26,4 GB tải chậm → fallback Plan B Kaggle. Schema Plan B **khác** Plan A (không có `category_id`/`dislikes`, `description` nhiều dòng) → xử lý bằng **`SRC_MAP` adapter** + **`split_csv.py`**: đổi/blend nguồn không cần sửa logic FR; owner: ______.
+1. **Lệnh kiểm tra environment:** `python src/env_check.py` (kết quả `RESULT: PASS` trong `logs/env_check.txt`).
+2. **Version/snapshot dữ liệu:** nguồn đang chạy là Kaggle `asaniczka/trending-youtube-videos-113-countries`
+   (license ODC-By) – xác định bằng `snapshot_date` + `ingested_at_utc` + **SHA-256** + bytes của
+   từng file ghi trong `manifest.json` (đầy đủ ở `metadata/README.md`).
+   *Plan A mở rộng*: Illinois Data Bank – DOI `10.13012/B2IDB-9307654_V1` (CC BY 4.0).
+3. **Chạy ingest 3 lần:** mặc định idempotent – hash trùng thì skip → raw không nhân bản; hash khác → run mới (append), không overwrite (mục 6, đã chạy thật 3 lần).
+4. **Rủi ro trước Buổi 7:** (đã xảy ra & đã xử lý) schema Plan B khác đề cương + CSV đa dòng 8,59 GB
+   → `SRC_MAP` adapter + `split_csv.py` + `verify_raw_records.py`. Rủi ro còn lại: dung lượng 8,59 GB
+   mỗi snapshot + phải ingest snapshot mới để so sánh growth 2 kỳ.
+   **Owner:** Phúc (transform) + Bảo (ingest) – **deadline: trước Buổi 7**.
 
 ## 9. Checklist đối chiếu rubric Checkpoint 2
 
-- [x] ENV: `logs/env_check.txt` có `RESULT: PASS`
-- [x] SOURCE: URL/DOI + snapshot + license ghi trong README/metadata
-- [x] INGEST: `src/ingest_file.py` chạy ≥ 1 lần thành công
+- [x] ENV: `logs/env_check.txt` có `RESULT: PASS` (đã commit vào git)
+- [x] SOURCE: URL + snapshot + license ghi trong README/metadata
+- [x] INGEST: `src/ingest_file.py` chạy ≥ 1 lần thành công (8,59 GB) + đã chạy 3 lần rerun
 - [x] RAW: `data/raw/youtube_trending/ingest_date=2026-10-20/run_20261020T143013Z/` có file không rỗng (8,59 GB)
-- [x] TRACE: `manifest.json` khớp file raw (bytes/sha256) + `logs/ingest.log`
-- [x] REPO: README + commit + `tag: checkpoint-2`
+- [x] TRACE: `manifest.json` khớp file raw (bytes/sha256) + `records` đếm chuẩn RFC4180 + `logs/ingest.log`
+- [x] REPO: README + commit + `tag: checkpoint-2` + báo cáo `docs/Checkpoint2_Report_*.pptx` + `docs/Checkpoint2_Brief_Filled.docx`
+- [x] SPARK ĐỌC RAW: `src/read_raw_sample.py` → `rows = 6,094,047` (khớp manifest)
 - [x] (Vượt yêu cầu) P3 transform + dashboard đã chạy trên dữ liệu thật (mục 10–11)
 - [ ] Mỗi thành viên trả lời được phần mình phụ trách (xem Plan & roles trong Proposal)
+
+### 9b. Ghi chú môi trường làm việc
+
+- Repo hiện nằm ở `E:\bigdata-project` (đã chuyển từ `D:\Edu\BD\bigdata-project`).
+  Các đường dẫn cũ trong `logs/` cũ và `manifest.json` là **dấu vết lịch sử** của lần chạy đó –
+  pipeline tự resolve theo vị trí file (`ROOT` = thư mục gốc repo) nên chạy được ở mọi máy.
+- `git remote` đang **trống**: cần `git remote add origin <url>` + `git push -u origin main`
+  để GV tải repo (nếu GV nhận repo bằng file ZIP thì không cần).
+- `hadoop/` (winutils) và `data/raw/` (8,59 GB) **không commit** → sau khi clone phải làm lại
+  mục 2b và ingest lại nếu muốn chạy P3 (GV chỉ cần `data/sample/` để chạy thử).
 
 ---
 

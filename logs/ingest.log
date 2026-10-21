@@ -5,3 +5,14 @@
 2026-10-20T13:03:47+00:00 | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
 2026-10-20T14:30:40+00:00 | success | dataset=youtube_trending | run=run_20261020T143013Z | files=1 (skipped=0) | bytes=8591418141 | sha256=4310930bd2d1… | dest=data\raw\youtube_trending\ingest_date=2026-10-20\run_20261020T143013Z
 2026-10-20T14:30:40+00:00 | manifest | data\raw\youtube_trending\ingest_date=2026-10-20\run_20261020T143013Z\manifest.json
+2026-10-21T17:20:17+00:00 | verify_records | run=run_20261020T143013Z | file=trending_yt_videos_113_countries.csv | records=6,094,047 | physical_lines=134,442,959 | multi_line=True | 86.7s | manifest += records (amendments[1])
+2026-10-21T17:22:21+00:00 | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+2026-10-21T17:22:50+00:00 | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+2026-10-21T17:23:02+00:00 | duplicate_skip | dataset=youtube_trending | 1/1 file đã có trong raw (sha256 khớp) -> raw storage KHÔNG thay đổi
+2026-10-21T17:23:15+00:00 | success | dataset=demo | run=run_20261021T172315Z | files=1 (skipped=0) | bytes=2909 | sha256=538bbfd9ae1a… | dest=C:\Users\Kichirou\AppData\Local\Temp\opencode\raw_modes\demo\ingest_date=2026-10-21\run_20261021T172315Z
+2026-10-21T17:23:15+00:00 | manifest | C:\Users\Kichirou\AppData\Local\Temp\opencode\raw_modes\demo\ingest_date=2026-10-21\run_20261021T172315Z\manifest.json
+2026-10-21T17:23:16+00:00 | success | dataset=demo | run=run_20261021T172316Z | files=1 (skipped=0) | bytes=2909 | sha256=538bbfd9ae1a… | dest=C:\Users\Kichirou\AppData\Local\Temp\opencode\raw_modes\demo\ingest_date=2026-10-21\run_20261021T172316Z
+2026-10-21T17:23:16+00:00 | manifest | C:\Users\Kichirou\AppData\Local\Temp\opencode\raw_modes\demo\ingest_date=2026-10-21\run_20261021T172316Z\manifest.json
+2026-10-21T17:23:18+00:00 | FAIL | duplicate hash 538bbfd9ae1a… (USvideos.csv) ở C:\Users\Kichirou\AppData\Local\Temp\opencode\raw_modes\demo\ingest_date=2026-10-21\run_20261021T172315Z\USvideos.csv
+2026-10-21T17:23:19+00:00 | GATE_FAIL | .csv | extension không mong đợi: (không có)
+2026-10-21T17:23:19+00:00 | ABORT | dataset=demo | nguồn không đạt quality gate -> không tạo raw

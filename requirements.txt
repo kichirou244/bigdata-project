@@ -6,3 +6,7 @@ pyarrow>=14
 duckdb>=1.0
 streamlit>=1.49   # cần >= 1.49 cho width="stretch" trong dashboard.py
 plotly>=5.20
+# Chỉ dùng để sinh lại báo cáo Checkpoint 2 (docs/build_checkpoint_*.py)
+# -> KHÔNG cần cài nếu chỉ chạy pipeline
+python-pptx>=1.0
+python-docx>=1.1
