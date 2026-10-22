@@ -14,6 +14,7 @@
 - **Đề tài:** Phân tích Xu hướng & Tốc độ Tăng trưởng Video Thịnh hành YouTube
   (YouTube Trending Analytics)
 - **Nhóm:** YouTube Trending Analytics (4 thành viên) — (Lớp: __________)
+- **Footer slide 1:** Buổi 6 · 20/10/2026 | tên 4 thành viên (đã điền sẵn trong deck)
 - **Thành viên & vai trò:**
   - Phan Đình Bảo – Môi trường + Ingestion (src/env_check.py, src/ingest_file.py)
   - Trương Đình Phúc – Spark transform (src/split_csv.py, src/transform.py)
@@ -26,12 +27,17 @@
 
 ## SLIDE 2 – Architecture update (phần ĐÃ triển khai)
 
+Deck vẽ sơ đồ bằng shape thật (không phải ảnh): 6 hộp `01 → 06`, hộp 01–03 viền
+xanh = **trong checkpoint này**, hộp 04–06 viền xám = **làm thêm cho Buổi 7–8**.
+
 ```
-[Kaggle 8,59 GB CSV] → ingest_file.py → raw/ (copy + SHA-256 manifest)
-        → split_csv.py (chuẩn hóa description đa dòng → 33 chunk)
-        → Spark 3.5.1 local[*] (adapter schema, dedup FR2, FR3)
-        → Parquet partition region/year_month (daily + summary, 341 MB)
-        → DuckDB (NFR3 19–549 ms) → Streamlit dashboard
+01 Kaggle CSV      8,59 GB · 113 nước · 6.094.047 record
+02 ingest_file.py  quality gate + SHA-256, copy nguyên bản
+03 Raw storage     data/raw/…/run_…/ + manifest.json
+──────────────────── boundary checkpoint ────────────────────
+04 split_csv.py    1 dòng = 1 record → 33 chunk CSV
+05 Spark 3.5.1     local[*] → Parquet phân vùng, 341 MB
+06 DuckDB/Streamlit dashboard tương tác (P3)
 ```
 
 - **Technology:** Python 3.12 · JDK 17 · PySpark 3.5.1 (local[*]) · DuckDB · Streamlit · Parquet
