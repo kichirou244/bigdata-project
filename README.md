@@ -20,13 +20,17 @@ bigdata-project/
 ├─ requirements.txt
 ├─ .env.example
 ├─ .gitignore
-├─ src/
+├─ src/                    ← pipeline + evidence của đồ án
 │  ├─ env_check.py        ← smoke test môi trường (evidence ENV)
 │  ├─ ingest_file.py      ← ingestion job + manifest (evidence INGEST/TRACE)
+│  ├─ verify_raw_records.py ← đếm lại record chuẩn RFC4180 (evidence TRACE)
 │  ├─ read_raw_sample.py  ← Spark đọc & inspect raw (evidence RAW)
 │  ├─ split_csv.py        ← chuẩn hóa CSV description đa dòng → chunk (pre-P3)
 │  ├─ transform.py        ← P3: Spark transform → Parquet phân vùng (FR1–FR4)
 │  └─ dashboard.py        ← Serve: Streamlit + DuckDB (NFR3 query ≤ 2s)
+├─ scripts/               ← công cụ sinh tài liệu (không thuộc pipeline)
+│  ├─ build_checkpoint_report.py
+│  └─ build_checkpoint_brief.py
 ├─ data/
 │  ├─ raw/                ← raw storage (CSV 8,59 GB KHÔNG commit; manifest.json ĐÃ commit)
 │  ├─ sample/             ← sample SYNTHETIC để dev (đã commit cho GV chạy thử)
@@ -205,8 +209,8 @@ Hai bản nộp trong `docs/` được **sinh tự động** từ template chín
 `..._Brief_Checkpoint_Template.docx`) — template gốc **không bị sửa**:
 
 ```powershell
-python src\build_checkpoint_report.py   # -> docs/Checkpoint2_Report_YouTube_Trending.pptx
-python src\build_checkpoint_brief.py    # -> docs/Checkpoint2_Brief_Filled.docx
+python scripts\build_checkpoint_report.py   # -> docs/Checkpoint2_Report_YouTube_Trending.pptx
+python scripts\build_checkpoint_brief.py    # -> docs/Checkpoint2_Brief_Filled.docx
 ```
 
 - Số liệu lấy tự động từ evidence thật (`logs/`, `manifest.json`) + commit hash lấy từ

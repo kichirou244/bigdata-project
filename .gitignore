@@ -33,6 +33,7 @@ derby.log
 
 # --- binary Hadoop (winutils) tải theo hướng dẫn README mục 2b ---
 hadoop/
+build/
 
 # --- IDE / OS ---
 .vscode/

@@ -1,22 +1,4 @@
-"""Sinh bản Checkpoint Brief (mẫu nộp) đã điền từ template chính thức của Buổi 6.
-
-Template (do GV cung cấp, KHÔNG sửa bản gốc):
-  D:\\Edu\\BD\\BigData_Buoi06_DoAn2_Brief_Checkpoint_Template.docx
-
-Output:
-  docs/Checkpoint2_Brief_Filled.docx
-
-Tự động điền:
-  * tick "☒ Có" ở bảng "Checklist giảng viên tại bàn"
-  * bảng thông tin cuối mẫu (Tên nhóm / Đề tài / Git / Environment / Source /
-    Ingestion command / Raw location / Manifest-log / Rerun behavior / Blocker /
-    Owner-deadline)
-  * 4 dòng trả lời EXIT TICKET ngay tại chỗ (thay dòng "____" của mẫu)
-  * bảng đối chiếu RUBRIC -> artifact/evidence
-
-Chạy:
-  python src/build_checkpoint_brief.py
-"""
+"""Sinh bản Checkpoint Brief đã điền từ template của GV."""
 from __future__ import annotations
 
 import shutil
@@ -80,16 +62,13 @@ def git(*args: str) -> str:
 
 
 def fill_cell(cell, text: str) -> None:
-    """Ghi text (multi-line) vào 1 ô, giữ style của ô đó."""
     para = cell.paragraphs[0]
     for run in list(para.runs):
         run._r.getparent().remove(run._r)
-    run = para.add_run(text)
-    run.font.size = Pt(10)
+    para.add_run(text).font.size = Pt(10)
 
 
 def fill_paragraph(paragraph, text: str) -> None:
-    """Ghi text vào 1 paragraph, giữ style run đầu tiên."""
     runs = list(paragraph.runs)
     if not runs:
         paragraph.add_run(text)
@@ -107,21 +86,17 @@ def build() -> int:
     shutil.copy2(TEMPLATE, OUT)
     doc = docx.Document(str(OUT))
 
-    # chỉ tham chiếu TAG (không phụ thuộc HEAD) -> sinh lại cho kết quả giống hệt nhau
     tag = git("describe", "--tags", "--abbrev=0")
     tag_commit = git("rev-parse", "--short", f"{tag}^{{commit}}")
 
-    # --- 1. Tick "☒ Có" ở bảng checklist giảng viên tại bàn ----------------
     ticked = 0
     for row in doc.tables[1].rows[1:]:
-        cell = row.cells[2]
-        for para in cell.paragraphs:
+        for para in row.cells[2].paragraphs:
             for run in para.runs:
                 if "□ Có" in run.text:
                     run.text = run.text.replace("□ Có", "☒ Có")
                     ticked += 1
 
-    # --- 2. Điền bảng thông tin cuối mẫu ----------------------------------
     answers = [
         TEAM,
         TITLE,
@@ -154,20 +129,16 @@ def build() -> int:
         "Bảo (env + ingest snapshot mới) – trước Buổi 7\n"
         "Châu (dashboard + tài liệu) – trước Buổi 8",
     ]
-    form = doc.tables[5]
-    for (row, answer) in zip(form.rows, answers):
+    for row, answer in zip(doc.tables[5].rows, answers):
         fill_cell(row.cells[1], answer)
 
-    # --- 3. Điền 4 dòng trả lời EXIT TICKET ngay tại chỗ -------------------
     blanks = [p for p in doc.paragraphs
               if p.text.strip() and set(p.text.strip()) == {"_"} and len(p.text.strip()) >= 40]
     if len(blanks) != len(EXIT_TICKET):
-        raise SystemExit(
-            f"Template có {len(blanks)} dòng trống, cần {len(EXIT_TICKET)} – kiểm lại template")
+        raise SystemExit(f"Template có {len(blanks)} dòng trống, cần {len(EXIT_TICKET)}")
     for para, answer in zip(blanks, EXIT_TICKET):
         fill_paragraph(para, answer)
 
-    # --- 4. Bảng đối chiếu rubric -> evidence -----------------------------
     doc.add_paragraph()
     head = doc.add_paragraph()
     run = head.add_run("ĐỐI CHIẾU RUBRIC CHECKPOINT 2 → BẰNG CHỨNG TRONG REPO")
@@ -191,9 +162,8 @@ def build() -> int:
     ]
     table = doc.add_table(rows=1, cols=2)
     table.style = "Table Grid"
-    hdr = table.rows[0].cells
-    hdr[0].text = "Hạng mục rubric"
-    hdr[1].text = "Artifact / evidence trong repo"
+    table.rows[0].cells[0].text = "Hạng mục rubric"
+    table.rows[0].cells[1].text = "Artifact / evidence trong repo"
     for left, right in rows:
         cells = table.add_row().cells
         cells[0].text = left
@@ -213,14 +183,11 @@ def build() -> int:
     run.font.size = Pt(9.5)
 
     doc.save(str(OUT))
-    print(f"OK -> {OUT}")
-    print(f"   tag={tag} ({tag_commit}) · tick {ticked} ô · "
-          f"{len(blanks)} dòng exit-ticket đã điền")
+    print(f"OK -> {OUT} (tag={tag} @ {tag_commit}, tick {ticked} ô)")
     return validate(doc)
 
 
 def validate(doc) -> int:
-    """Kiểm tra: không còn ô trống, không còn dòng '____', bảng không tràn trang."""
     problems: list[str] = []
     sec = doc.sections[0]
     usable = (sec.page_width - sec.left_margin - sec.right_margin) / 914400
@@ -229,17 +196,16 @@ def validate(doc) -> int:
         for row in table.rows:
             for cell in row.cells:
                 if cell.width and cell.width / 914400 > usable + 0.05:
-                    problems.append(f"bảng {ti}: cột rộng {cell.width / 914400:.2f}in > {usable:.2f}in")
+                    problems.append(f"bảng {ti}: cột rộng quá trang")
 
-    form = doc.tables[5]
-    empty = [i for i, row in enumerate(form.rows) if not row.cells[1].text.strip()]
+    empty = [i for i, row in enumerate(doc.tables[5].rows) if not row.cells[1].text.strip()]
     if empty:
         problems.append(f"bảng thông tin: ô trống ở hàng {empty}")
 
     blanks = [p.text for p in doc.paragraphs
               if p.text.strip() and set(p.text.strip()) == {"_"} and len(p.text.strip()) >= 40]
     if blanks:
-        problems.append(f"còn {len(blanks)} dòng '____' chưa điền (exit ticket)")
+        problems.append(f"còn {len(blanks)} dòng '____' chưa điền")
 
     full = "\n".join(p.text for p in doc.paragraphs)
     full += "\n".join(c.text for t in doc.tables for r in t.rows for c in r.cells)
@@ -253,7 +219,7 @@ def validate(doc) -> int:
         for p in problems:
             print("  - " + p)
         return 1
-    print("BRIEF OK: mọi ô đã điền, exit-ticket đầy đủ, bảng không tràn trang.")
+    print("BRIEF OK.")
     return 0
 
 
