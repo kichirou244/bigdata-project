@@ -1,0 +1,9 @@
+{
+  "raw_input_path": "data/work/split/trending_yt_videos_113_countries",
+  "dim_country_path": "data/raw/dim_country.csv",
+  "output_summary_path": "output/youtube_trending_summary",
+  "preview_path": "output/preview_csv",
+  "evidence_dir": "evidence",
+  "spark_driver_memory": "4g",
+  "shuffle_partitions": "64"
+}

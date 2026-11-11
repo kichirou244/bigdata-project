@@ -1,0 +1,149 @@
+== Physical Plan ==
+AdaptiveSparkPlan (24)
++- Sort (23)
+   +- Exchange (22)
+      +- HashAggregate (21)
+         +- Exchange (20)
+            +- HashAggregate (19)
+               +- HashAggregate (18)
+                  +- HashAggregate (17)
+                     +- Project (16)
+                        +- BroadcastHashJoin Inner BuildRight (15)
+                           :- Project (11)
+                           :  +- Project (10)
+                           :     +- Window (9)
+                           :        +- Sort (8)
+                           :           +- Exchange (7)
+                           :              +- HashAggregate (6)
+                           :                 +- Exchange (5)
+                           :                    +- HashAggregate (4)
+                           :                       +- Project (3)
+                           :                          +- Filter (2)
+                           :                             +- Scan csv  (1)
+                           +- BroadcastExchange (14)
+                              +- Filter (13)
+                                 +- Scan csv  (12)
+
+
+(1) Scan csv 
+Output [5]: [snapshot_date#22, country#23, view_count#24, like_count#25, video_id#29]
+Batched: false
+Location: InMemoryFileIndex [file:/E:/bigdata-project/data/work/split/trending_yt_videos_113_countries/chunk_00000.csv]
+PushedFilters: [IsNotNull(video_id)]
+ReadSchema: struct<snapshot_date:string,country:string,view_count:string,like_count:string,video_id:string>
+
+(2) Filter
+Input [5]: [snapshot_date#22, country#23, view_count#24, like_count#25, video_id#29]
+Condition : (((((isnotnull(video_id#29) AND NOT (trim(video_id#29, None) = )) AND (coalesce(try_cast(view_count#24 as bigint), 0) >= 0)) AND isnotnull(coalesce(cast(gettimestamp(snapshot_date#22, yyyy-MM-dd, TimestampType, Some(UTC), false) as date), cast(gettimestamp(regexp_extract(snapshot_date#22, ^(\d{2}\.\d{2}\.\d{2}), 1), yy.dd.MM, TimestampType, Some(UTC), false) as date)))) AND isnotnull(upper(trim(country#23, None)))) AND NOT (upper(trim(country#23, None)) = ))
+
+(3) Project
+Output [5]: [upper(trim(country#23, None)) AS country#413, coalesce(try_cast(view_count#24 as bigint), 0) AS views#390L, coalesce(try_cast(like_count#25 as bigint), 0) AS likes#391L, video_id#29, coalesce(cast(gettimestamp(snapshot_date#22, yyyy-MM-dd, TimestampType, Some(UTC), false) as date), cast(gettimestamp(regexp_extract(snapshot_date#22, ^(\d{2}\.\d{2}\.\d{2}), 1), yy.dd.MM, TimestampType, Some(UTC), false) as date)) AS trending_dt#266]
+Input [5]: [snapshot_date#22, country#23, view_count#24, like_count#25, video_id#29]
+
+(4) HashAggregate
+Input [5]: [country#413, views#390L, likes#391L, video_id#29, trending_dt#266]
+Keys [3]: [video_id#29, country#413, trending_dt#266]
+Functions [2]: [partial_first(views#390L, false), partial_first(likes#391L, false)]
+Aggregate Attributes [4]: [first#1224L, valueSet#1225, first#1226L, valueSet#1227]
+Results [7]: [video_id#29, country#413, trending_dt#266, first#1228L, valueSet#1229, first#1230L, valueSet#1231]
+
+(5) Exchange
+Input [7]: [video_id#29, country#413, trending_dt#266, first#1228L, valueSet#1229, first#1230L, valueSet#1231]
+Arguments: hashpartitioning(video_id#29, country#413, trending_dt#266, 64), ENSURE_REQUIREMENTS, [plan_id=1081]
+
+(6) HashAggregate
+Input [7]: [video_id#29, country#413, trending_dt#266, first#1228L, valueSet#1229, first#1230L, valueSet#1231]
+Keys [3]: [video_id#29, country#413, trending_dt#266]
+Functions [2]: [first(views#390L, false), first(likes#391L, false)]
+Aggregate Attributes [2]: [first(views#390L)()#1178L, first(likes#391L)()#1180L]
+Results [5]: [country#413, first(views#390L)()#1178L AS views#1179L, first(likes#391L)()#1180L AS likes#1181L, video_id#29, trending_dt#266]
+
+(7) Exchange
+Input [5]: [country#413, views#1179L, likes#1181L, video_id#29, trending_dt#266]
+Arguments: hashpartitioning(video_id#29, country#413, 64), ENSURE_REQUIREMENTS, [plan_id=1084]
+
+(8) Sort
+Input [5]: [country#413, views#1179L, likes#1181L, video_id#29, trending_dt#266]
+Arguments: [video_id#29 ASC NULLS FIRST, country#413 ASC NULLS FIRST, trending_dt#266 ASC NULLS FIRST], false, 0
+
+(9) Window
+Input [5]: [country#413, views#1179L, likes#1181L, video_id#29, trending_dt#266]
+Arguments: [lag(views#1179L, -1, null) windowspecdefinition(video_id#29, country#413, trending_dt#266 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -1, -1)) AS prev_views#498L, lag(trending_dt#266, -1, null) windowspecdefinition(video_id#29, country#413, trending_dt#266 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -1, -1)) AS prev_dt#521], [video_id#29, country#413], [trending_dt#266 ASC NULLS FIRST]
+
+(10) Project
+Output [7]: [country#413, views#1179L, likes#1181L, video_id#29, trending_dt#266, (views#1179L - prev_views#498L) AS delta_views#545L, (cast((unix_timestamp(trending_dt#266, yyyy-MM-dd HH:mm:ss, Some(UTC), false) - unix_timestamp(prev_dt#521, yyyy-MM-dd HH:mm:ss, Some(UTC), false)) as double) / 3600.0) AS delta_hours#570]
+Input [7]: [country#413, views#1179L, likes#1181L, video_id#29, trending_dt#266, prev_views#498L, prev_dt#521]
+
+(11) Project
+Output [6]: [country#413, views#1179L, likes#1181L, video_id#29, CASE WHEN (delta_hours#570 > 0.0) THEN round((cast(delta_views#545L as double) / delta_hours#570), 2) END AS views_per_hour#596, date_format(cast(trending_dt#266 as timestamp), yyyy-MM, Some(UTC)) AS year_month#623]
+Input [7]: [country#413, views#1179L, likes#1181L, video_id#29, trending_dt#266, delta_views#545L, delta_hours#570]
+
+(12) Scan csv 
+Output [3]: [country_code#223, country_name#224, continent#225]
+Batched: false
+Location: InMemoryFileIndex [file:/E:/bigdata-project/data/raw/dim_country.csv]
+PushedFilters: [IsNotNull(country_name), Not(EqualTo(country_code,)), IsNotNull(country_code)]
+ReadSchema: struct<country_code:string,country_name:string,continent:string>
+
+(13) Filter
+Input [3]: [country_code#223, country_name#224, continent#225]
+Condition : ((isnotnull(country_name#224) AND NOT (country_code#223 = )) AND isnotnull(country_code#223))
+
+(14) BroadcastExchange
+Input [3]: [country_code#223, country_name#224, continent#225]
+Arguments: HashedRelationBroadcastMode(List(input[0, string, false]),false), [plan_id=1090]
+
+(15) BroadcastHashJoin
+Left keys [1]: [country#413]
+Right keys [1]: [country_code#223]
+Join type: Inner
+Join condition: None
+
+(16) Project
+Output [8]: [country#413, views#1179L, likes#1181L, video_id#29, views_per_hour#596, year_month#623, country_name#224, continent#225]
+Input [9]: [country#413, views#1179L, likes#1181L, video_id#29, views_per_hour#596, year_month#623, country_code#223, country_name#224, continent#225]
+
+(17) HashAggregate
+Input [8]: [country#413, views#1179L, likes#1181L, video_id#29, views_per_hour#596, year_month#623, country_name#224, continent#225]
+Keys [5]: [continent#225, country_name#224, country#413, year_month#623, video_id#29]
+Functions [6]: [partial_count(1), partial_max(views#1179L), partial_avg(views#1179L), partial_avg(likes#1181L), partial_avg(views_per_hour#596), partial_max(views_per_hour#596)]
+Aggregate Attributes [6]: [count(1)#1083L, max(views#1179L)#1085L, avg(views#1179L)#1087, avg(likes#1181L)#1089, avg(views_per_hour#596)#1091, max(views_per_hour#596)#1093]
+Results [14]: [continent#225, country_name#224, country#413, year_month#623, video_id#29, count#1203L, max#1205L, sum#1208, count#1209L, sum#1212, count#1213L, sum#1216, count#1217L, max#1219]
+
+(18) HashAggregate
+Input [14]: [continent#225, country_name#224, country#413, year_month#623, video_id#29, count#1203L, max#1205L, sum#1208, count#1209L, sum#1212, count#1213L, sum#1216, count#1217L, max#1219]
+Keys [5]: [continent#225, country_name#224, country#413, year_month#623, video_id#29]
+Functions [6]: [merge_count(1), merge_max(views#1179L), merge_avg(views#1179L), merge_avg(likes#1181L), merge_avg(views_per_hour#596), merge_max(views_per_hour#596)]
+Aggregate Attributes [6]: [count(1)#1083L, max(views#1179L)#1085L, avg(views#1179L)#1087, avg(likes#1181L)#1089, avg(views_per_hour#596)#1091, max(views_per_hour#596)#1093]
+Results [14]: [continent#225, country_name#224, country#413, year_month#623, video_id#29, count#1203L, max#1205L, sum#1208, count#1209L, sum#1212, count#1213L, sum#1216, count#1217L, max#1219]
+
+(19) HashAggregate
+Input [14]: [continent#225, country_name#224, country#413, year_month#623, video_id#29, count#1203L, max#1205L, sum#1208, count#1209L, sum#1212, count#1213L, sum#1216, count#1217L, max#1219]
+Keys [4]: [continent#225, country_name#224, country#413, year_month#623]
+Functions [7]: [merge_count(1), merge_max(views#1179L), merge_avg(views#1179L), merge_avg(likes#1181L), merge_avg(views_per_hour#596), merge_max(views_per_hour#596), partial_count(distinct video_id#29)]
+Aggregate Attributes [7]: [count(1)#1083L, max(views#1179L)#1085L, avg(views#1179L)#1087, avg(likes#1181L)#1089, avg(views_per_hour#596)#1091, max(views_per_hour#596)#1093, count(video_id#29)#1095L]
+Results [14]: [continent#225, country_name#224, country#413, year_month#623, count#1203L, max#1205L, sum#1208, count#1209L, sum#1212, count#1213L, sum#1216, count#1217L, max#1219, count#1222L]
+
+(20) Exchange
+Input [14]: [continent#225, country_name#224, country#413, year_month#623, count#1203L, max#1205L, sum#1208, count#1209L, sum#1212, count#1213L, sum#1216, count#1217L, max#1219, count#1222L]
+Arguments: hashpartitioning(continent#225, country_name#224, country#413, year_month#623, 64), ENSURE_REQUIREMENTS, [plan_id=1097]
+
+(21) HashAggregate
+Input [14]: [continent#225, country_name#224, country#413, year_month#623, count#1203L, max#1205L, sum#1208, count#1209L, sum#1212, count#1213L, sum#1216, count#1217L, max#1219, count#1222L]
+Keys [4]: [continent#225, country_name#224, country#413, year_month#623]
+Functions [7]: [count(1), max(views#1179L), avg(views#1179L), avg(likes#1181L), avg(views_per_hour#596), max(views_per_hour#596), count(distinct video_id#29)]
+Aggregate Attributes [7]: [count(1)#1083L, max(views#1179L)#1085L, avg(views#1179L)#1087, avg(likes#1181L)#1089, avg(views_per_hour#596)#1091, max(views_per_hour#596)#1093, count(video_id#29)#1095L]
+Results [11]: [continent#225, country_name#224, country#413, year_month#623, count(video_id#29)#1095L AS unique_videos#1082L, count(1)#1083L AS total_snapshots#1084L, max(views#1179L)#1085L AS top_video_views#1086L, round(avg(views#1179L)#1087, 2) AS avg_views#1088, round(avg(likes#1181L)#1089, 2) AS avg_likes#1090, round(avg(views_per_hour#596)#1091, 2) AS avg_views_per_hour#1092, round(max(views_per_hour#596)#1093, 2) AS peak_views_per_hour#1094]
+
+(22) Exchange
+Input [11]: [continent#225, country_name#224, country#413, year_month#623, unique_videos#1082L, total_snapshots#1084L, top_video_views#1086L, avg_views#1088, avg_likes#1090, avg_views_per_hour#1092, peak_views_per_hour#1094]
+Arguments: rangepartitioning(avg_views_per_hour#1092 DESC NULLS LAST, top_video_views#1086L DESC NULLS LAST, 64), ENSURE_REQUIREMENTS, [plan_id=1100]
+
+(23) Sort
+Input [11]: [continent#225, country_name#224, country#413, year_month#623, unique_videos#1082L, total_snapshots#1084L, top_video_views#1086L, avg_views#1088, avg_likes#1090, avg_views_per_hour#1092, peak_views_per_hour#1094]
+Arguments: [avg_views_per_hour#1092 DESC NULLS LAST, top_video_views#1086L DESC NULLS LAST], true, 0
+
+(24) AdaptiveSparkPlan
+Output [11]: [continent#225, country_name#224, country#413, year_month#623, unique_videos#1082L, total_snapshots#1084L, top_video_views#1086L, avg_views#1088, avg_likes#1090, avg_views_per_hour#1092, peak_views_per_hour#1094]
+Arguments: isFinalPlan=false
+

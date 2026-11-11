@@ -1,0 +1,2 @@
+# Track large manifest and data files with Git LFS
+data/raw/**/manifest.json filter=lfs diff=lfs merge=lfs -text

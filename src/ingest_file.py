@@ -197,6 +197,8 @@ def main() -> int:
                 records_physical_lines=counted["physical_lines"],
                 records_multi_line_csv=counted["multi_line"],
             )
+            if "row_hashing" in counted:
+                entry["row_hashing"] = counted["row_hashing"]
             log(f"count_records | {target.name} | records={counted['records']:,}")
         entries.append(entry)
 

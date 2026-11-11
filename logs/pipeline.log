@@ -1,0 +1,39 @@
+2026-11-11T14:44:15+00:00 | ============================================================
+2026-11-11T14:44:15+00:00 | CHECKPOINT 3: SPARK PROCESSING PIPELINE
+2026-11-11T14:44:15+00:00 | Raw Input:  E:\bigdata-project\data\work\split\trending_yt_videos_113_countries
+2026-11-11T14:44:15+00:00 | Dimension:  E:\bigdata-project\data\raw\dim_country.csv
+2026-11-11T14:44:15+00:00 | Output:     E:\bigdata-project\output\youtube_trending_summary
+2026-11-11T14:44:15+00:00 | ============================================================
+2026-11-11T14:44:15+00:00 | Running sample mode: 1 chunks
+2026-11-11T14:44:45+00:00 | ============================================================
+2026-11-11T14:44:45+00:00 | CHECKPOINT 3: SPARK PROCESSING PIPELINE
+2026-11-11T14:44:45+00:00 | Raw Input:  E:\bigdata-project\data\work\split\trending_yt_videos_113_countries
+2026-11-11T14:44:45+00:00 | Dimension:  E:\bigdata-project\data\raw\dim_country.csv
+2026-11-11T14:44:45+00:00 | Output:     E:\bigdata-project\output\youtube_trending_summary
+2026-11-11T14:44:45+00:00 | ============================================================
+2026-11-11T14:44:45+00:00 | Running sample mode: 1 chunks
+2026-11-11T14:44:49+00:00 | [INPUT] fact_rows=167,866 | dim_countries=113
+2026-11-11T14:44:53+00:00 | [CLEAN] valid_rows=167,657 | dropped_rows=209 (0.12%)
+2026-11-11T14:44:56+00:00 | [ROW_HASH] Strategy=sha256_per_record | Sample=003ae4089d99bfe1...
+2026-11-11T14:44:59+00:00 | [JOIN] joined_rows=167,657 | dim_unique_check=True | unmatched=0
+2026-11-11T14:45:01+00:00 | [AGG] KPI output groups=226
+2026-11-11T14:45:01+00:00 | [PLAN] Formatted explain plan written to: E:\bigdata-project\evidence\explain_plan.txt
+2026-11-11T14:45:08+00:00 | [WRITE] Parquet saved: E:\bigdata-project\output\youtube_trending_summary
+2026-11-11T14:45:08+00:00 | [WRITE] CSV preview saved: E:\bigdata-project\output\preview_csv
+2026-11-11T14:45:10+00:00 | [BASELINE] Runtime: 23.13 s | Metrics: E:\bigdata-project\evidence\execution_metrics.json
+2026-11-11T15:08:44+00:00 | ============================================================
+2026-11-11T15:08:44+00:00 | CHECKPOINT 3: SPARK PROCESSING PIPELINE
+2026-11-11T15:08:44+00:00 | Raw Input:  E:\bigdata-project\data\work\split\trending_yt_videos_113_countries
+2026-11-11T15:08:44+00:00 | Dimension:  E:\bigdata-project\data\raw\dim_country.csv
+2026-11-11T15:08:44+00:00 | Output:     E:\bigdata-project\output\youtube_trending_summary
+2026-11-11T15:08:44+00:00 | ============================================================
+2026-11-11T15:08:44+00:00 | Running sample mode: 1 chunks
+2026-11-11T15:08:49+00:00 | [INPUT] fact_rows=167,866 | dim_countries=113
+2026-11-11T15:08:53+00:00 | [CLEAN] valid_rows=167,657 | dropped_rows=209 (0.12%)
+2026-11-11T15:08:55+00:00 | [ROW_HASH] Strategy=sha256_per_record | Sample=003ae4089d99bfe1...
+2026-11-11T15:08:59+00:00 | [JOIN] joined_rows=167,657 | dim_unique_check=True | unmatched=0
+2026-11-11T15:09:01+00:00 | [AGG] KPI output groups=226
+2026-11-11T15:09:01+00:00 | [PLAN] Formatted explain plan written to: E:\bigdata-project\evidence\explain_plan.txt
+2026-11-11T15:09:08+00:00 | [WRITE] Parquet saved: E:\bigdata-project\output\youtube_trending_summary
+2026-11-11T15:09:08+00:00 | [WRITE] CSV preview saved: E:\bigdata-project\output\preview_csv
+2026-11-11T15:09:10+00:00 | [BASELINE] Runtime: 23.63 s | Metrics: E:\bigdata-project\evidence\execution_metrics.json

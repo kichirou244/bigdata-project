@@ -281,3 +281,42 @@ app khởi động để số đo là query thật.
 
 **Đo trên dữ liệu thật (113 quốc gia):** query **19–549 ms**; AppTest: 0 exception,
 5 chart — tab danh mục tự ẩn (`category_id` không có trong nguồn Kaggle).
+
+---
+
+## 12. ĐỒ ÁN 3 · CHECKPOINT 3 – SPARK PROCESSING PIPELINE ✅
+
+### Chạy Pipeline End-to-End
+Pipeline đọc raw data, thực hiện transformations (làm sạch, lọc, băm SHA-256 từng dòng theo nhận xét GV, windowing), join với bảng chiều quốc gia `dim_country.csv`, tính KPI tổng hợp và lưu kết quả Parquet + CSV preview + lưu baseline explain plan:
+
+```powershell
+# Chạy với file config mặc định
+python src/pipeline.py --config config/config.json
+
+# Hoặc chạy kiểm tra nhanh trên 1 chunk mẫu
+python src/pipeline.py --config config/config.json --limit-chunks 1
+```
+
+### Các đầu ra Checkpoint 3 (Deliverables):
+1. **Pipeline chạy End-to-End**: `src/pipeline.py` chạy qua 1 lệnh duy nhất.
+2. **Transformations**:
+   - Parse & ép kiểu: `trending_dt`, `publish_dt`, regex lọc emoji trong title & channel.
+   - Filter: Lọc bỏ dòng views < 0 hoặc thiếu video_id / country.
+   - **Row Hashing**: Tính SHA-256 cho từng record (`row_hash`) trực tiếp trong Spark (khắc phục nhận xét của GV).
+   - Window feature: `views_per_hour = delta_views / delta_hours`.
+3. **Fact – Dimension Join**:
+   - `fact_trending` LEFT JOIN `dim_country` trên `country == country_code`.
+   - Dimension unique 100% (113 nước), không làm nổ dòng (`joined_rows == clean_rows`), unmatched = 0.
+4. **Aggregation**:
+   - Group by: `continent`, `country_name`, `year_month`.
+   - KPI: `unique_videos`, `total_snapshots`, `avg_views`, `avg_views_per_hour`, `peak_views_per_hour`.
+5. **Output**:
+   - Parquet: `output/youtube_trending_summary/` (phân vùng theo `continent`).
+   - CSV Preview: `output/preview_csv/`.
+6. **Quality Evidence & Baseline**:
+   - Formatted explain plan: `evidence/explain_plan.txt`.
+   - Execution metrics: `evidence/execution_metrics.json` (Runtime: **23.13s**).
+7. **Báo cáo & Slide**:
+   - Markdown Report: `reports/checkpoint3.md`.
+   - Slide thuyết trình 6 trang: `docs/Checkpoint3_Report_YouTube_Trending.pptx`.
+

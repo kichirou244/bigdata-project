@@ -75,12 +75,16 @@ def main() -> int:
     if args.check:
         return 0
 
+    if result.get("row_hashing"):
+        files[0]["row_hashing"] = result["row_hashing"]
+        manifest["row_hashing"] = result["row_hashing"]
+
     files[0].update(
         rows_estimate=None,
         rows_estimate_kind="multiline_csv",
         rows_estimate_note=(
             "CSV nhiều dòng: số dòng vật lý không phải số record. "
-            "Số thật ở `records` (RFC4180)."
+            "Số thật ở `records` (RFC4180). Hash tính theo từng dòng (row-level SHA-256)."
         ),
         records=result["records"],
         records_source="rfc4180_counter",
@@ -94,8 +98,10 @@ def main() -> int:
         {
             "at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "tool": "src/verify_raw_records.py",
-            "change": "rows_estimate -> records (RFC4180)",
+            "change": "Thầy nhận xét: Bổ sung hash từng dòng (row-level SHA-256 per record) thay vì hash cả file to",
             "records_after": result["records"],
+            "row_hashing_strategy": result.get("row_hashing", {}).get("strategy"),
+            "cumulative_rows_hash": result.get("row_hashing", {}).get("cumulative_rows_hash"),
             "duration_seconds": duration,
         }
     )

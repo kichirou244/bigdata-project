@@ -1,0 +1,3 @@
+- [x] fix: 1 dòng 1 hash (Đã chuyển đổi sang row-level SHA-256 per record trong split_csv.py, ingest_file.py, verify_raw_records.py và PySpark pipeline F.sha2)
+- [ ] Chuyển giao đồ án 3: Spark Processing Pipeline theo base giáo viên
+- [ ] Hoàn thiện slide thuyết trình đẹp mắt, chuẩn kích thước khung chữ

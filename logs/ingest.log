@@ -16,3 +16,4 @@
 2026-10-21T17:23:18+00:00 | FAIL | duplicate hash 538bbfd9ae1a… (USvideos.csv) ở C:\Users\Kichirou\AppData\Local\Temp\opencode\raw_modes\demo\ingest_date=2026-10-21\run_20261021T172315Z\USvideos.csv
 2026-10-21T17:23:19+00:00 | GATE_FAIL | .csv | extension không mong đợi: (không có)
 2026-10-21T17:23:19+00:00 | ABORT | dataset=demo | nguồn không đạt quality gate -> không tạo raw
+2026-11-11T15:05:30+00:00 | verify_records | run=run_20261020T143013Z | file=trending_yt_videos_113_countries.csv | records=6,094,047 | physical_lines=134,442,959 | 105.0s | manifest += records

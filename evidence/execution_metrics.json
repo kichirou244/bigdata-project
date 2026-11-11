@@ -1,0 +1,15 @@
+{
+  "dataset": "youtube_trending",
+  "checkpoint": "checkpoint-3",
+  "runtime_seconds": 23.63,
+  "input_rows": 167866,
+  "clean_rows": 167657,
+  "dropped_rows": 209,
+  "joined_rows": 167657,
+  "unmatched_rows": 0,
+  "output_groups": 226,
+  "dim_unique": true,
+  "sample_row_hash": "003ae4089d99bfe11c4240d9ef40efd5357cdab9e0026a31057a0878b00ef2a0",
+  "partitions": 1,
+  "timestamp_utc": "2026-11-11T15:09:10+00:00"
+}

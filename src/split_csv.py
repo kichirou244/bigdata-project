@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import time
 from datetime import datetime, timezone
@@ -13,11 +14,15 @@ MAX_RECORD_BYTES = 20 * 1024 * 1024
 VALIDATE_FIRST = 500
 
 
-def count_records(source: Path) -> dict:
+def count_records(source: Path, compute_row_hash: bool = True, sample_count: int = 5) -> dict:
     header: list[str] = []
     in_quotes = False
     records = physical_lines = 0
     multi_line = pending = False
+    first_samples: list[str] = []
+    last_samples: list[str] = []
+    cumulative_hasher = hashlib.sha256() if compute_row_hash else None
+    current_record_parts: list[str] = []
 
     with source.open("r", encoding="utf-8-sig", errors="replace") as src:
         for i, line in enumerate(src):
@@ -32,21 +37,45 @@ def count_records(source: Path) -> dict:
             if odd:
                 in_quotes = not in_quotes
                 multi_line = True
+            current_record_parts.append(content)
             if in_quotes:
                 pending = True
                 continue
-            if content.strip() == "":
+            record_str = "\n".join(current_record_parts)
+            current_record_parts = []
+            if record_str.strip() == "":
                 continue
             records += 1
             pending = False
+
+            if compute_row_hash and cumulative_hasher is not None:
+                row_h = hashlib.sha256(record_str.encode("utf-8")).hexdigest()
+                cumulative_hasher.update(row_h.encode("ascii"))
+                if len(first_samples) < sample_count:
+                    first_samples.append(row_h)
+                else:
+                    if len(last_samples) >= sample_count:
+                        last_samples.pop(0)
+                    last_samples.append(row_h)
+
     if pending:
         raise SystemExit('CSV kết thúc giữa chừng một record (dấu " không cân bằng)')
-    return {
+
+    result = {
         "records": records,
         "columns": len(header),
         "physical_lines": physical_lines,
         "multi_line": multi_line,
     }
+    if compute_row_hash and cumulative_hasher is not None:
+        result["row_hashing"] = {
+            "strategy": "sha256_per_record",
+            "records_hashed": records,
+            "sample_first_row_hashes": first_samples,
+            "sample_last_row_hashes": last_samples,
+            "cumulative_rows_hash": cumulative_hasher.hexdigest(),
+        }
+    return result
 
 
 def split_file(source: Path, out_dir: Path, chunk_mb: int = 256) -> dict:
