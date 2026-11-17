@@ -1,0 +1,68 @@
+{
+  "workload": {
+    "chunk_file": "chunk_00000.csv",
+    "chunk_size_mb": 256.0,
+    "input_rows": 167866,
+    "clean_rows": 167657,
+    "output_groups": 226
+  },
+  "environment": {
+    "spark_version": "3.5.1",
+    "python_version": "3.12",
+    "master": "local[*]",
+    "driver_memory": "4g",
+    "shuffle_partitions_before": 64,
+    "shuffle_partitions_after": 8
+  },
+  "baseline": {
+    "runs": [
+      27.77,
+      15.21,
+      14.44
+    ],
+    "median": 15.21
+  },
+  "optimized": {
+    "runs": [
+      9.24,
+      8.32,
+      8.88
+    ],
+    "median": 8.88
+  },
+  "speedup_percent": 41.62,
+  "delta_seconds": 6.33,
+  "correctness": "PASS",
+  "assertions": [
+    [
+      "Input Row Count Match",
+      true,
+      "167866 vs 167866"
+    ],
+    [
+      "Clean Valid Rows Match",
+      true,
+      "167657 vs 167657"
+    ],
+    [
+      "Joined Fact-Dim Rows Match",
+      true,
+      "167657 vs 167657"
+    ],
+    [
+      "Output Summary Groups Match",
+      true,
+      "226 vs 226"
+    ],
+    [
+      "Business KPIs Exact Match",
+      true,
+      "{'top_video_views': 46070495, 'avg_views': 1148621.15, 'avg_views_per_hour': 63983.45} vs {'top_video_views': 46070495, 'avg_views': 1148621.15, 'avg_views_per_hour': 63983.45}"
+    ]
+  ],
+  "business_kpis": {
+    "top_video_views": 46070495,
+    "avg_views": 1148621.15,
+    "avg_views_per_hour": 63983.45
+  }
+}

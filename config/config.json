@@ -5,5 +5,5 @@
   "preview_path": "output/preview_csv",
   "evidence_dir": "evidence",
   "spark_driver_memory": "4g",
-  "shuffle_partitions": "64"
+  "shuffle_partitions": "8"
 }

@@ -1,0 +1,7 @@
+experiment,run_id,workload,input_rows,shuffle_partitions,runtime_seconds,is_median
+baseline,1,chunk_00000.csv,167866,64,27.77,False
+baseline,2,chunk_00000.csv,167866,64,15.21,True
+baseline,3,chunk_00000.csv,167866,64,14.44,False
+optimized,1,chunk_00000.csv,167866,8,9.24,False
+optimized,2,chunk_00000.csv,167866,8,8.32,False
+optimized,3,chunk_00000.csv,167866,8,8.88,True
